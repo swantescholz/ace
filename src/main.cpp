@@ -24,8 +24,8 @@ void init(int argc, char **argv) {
 		}
 	}
 	Gtk::Main main_obj(argc, argv);
-	Application *win = nullptr;
-	win = new Application();
+	ace::Application *win = nullptr;
+	win = new ace::Application();
 	try {
 		main_obj.run(*win);
 	}

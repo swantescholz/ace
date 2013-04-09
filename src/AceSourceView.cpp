@@ -244,7 +244,7 @@ void SourceView::getLines(const GtkTextIter& a, const GtkTextIter& b, std::vecto
 }
 
 std::string SourceView::getCorrectIndentationOfLine(const GtkTextIter& iter) {
-	
+	return "";
 }
 
 void SourceView::autoIndentSelection() {

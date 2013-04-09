@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <chrono>
 
+#include "AceTimer.h"
 #include "AceException.h"
 
 namespace ace {
@@ -39,13 +40,13 @@ void system(const std::string& str) {
 	}
 }
 void delay(double timeInSec) {
-	auto t1 = std::chrono::monotonic_clock::now();
-	while (std::chrono::duration<double>(std::chrono::monotonic_clock::now()-t1).count() < timeInSec) {}
+	auto t1 = Timer::tclock::now();
+	while (std::chrono::duration<double>(Timer::tclock::now()-t1).count() < timeInSec) {}
 }
 double timeDiff() {
-	static std::chrono::monotonic_clock::time_point last = std::chrono::monotonic_clock::now();
-	double d = std::chrono::duration<double>(std::chrono::monotonic_clock::now() - last).count();
-	last = std::chrono::monotonic_clock::now();
+	static Timer::tclock::time_point last = Timer::tclock::now();
+	double d = std::chrono::duration<double>(Timer::tclock::now() - last).count();
+	last = Timer::tclock::now();
 	return d;
 }
 int getNextNumber(int pNum) {

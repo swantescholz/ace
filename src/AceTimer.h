@@ -9,12 +9,14 @@
 
 namespace ace {
 	
-	class Timer
-	{
-	private:
+	class Timer {
+	public:
 		typedef double type_t; //double or float
-		typedef std::chrono::monotonic_clock::time_point time_point_t;
-		typedef std::chrono::monotonic_clock::duration   duration_t;
+		typedef std::chrono::high_resolution_clock tclock;
+		typedef std::chrono::microseconds microseconds;
+		typedef std::chrono::milliseconds milliseconds;
+		typedef tclock::time_point time_point_t;
+		typedef tclock::duration   duration_t;
 	public:
 		Timer(type_t limit = 1.0);
 		Timer(const Timer & rhs);

@@ -61,7 +61,7 @@ private:
 	char        getLastNonwhiteCharOfLine(const GtkTextIter& iter);
 	char        getFirstNonwhiteCharOfLine(const GtkTextIter& iter);
 	void        deleteWhitespaceInFrontOfLine(const GtkTextIter& iter);
-	void        getLines(const GtkTextIter& a, const GtkTextIter& b, std::vector<std::string> lines)
+	void        getLines(const GtkTextIter& a, const GtkTextIter& b, std::vector<std::string> lines);
 	std::string getCorrectIndentationOfLine(const GtkTextIter& iter);
 	
 	GtkWidget* editor;

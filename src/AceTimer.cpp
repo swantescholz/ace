@@ -58,11 +58,11 @@ namespace ace {
 	
 	// *static*
 	void Timer::init() {
-		s_FirstTimePoint = std::chrono::monotonic_clock::now();
-		s_LastTimePoint  = std::chrono::monotonic_clock::now();
+		s_FirstTimePoint = tclock::now();
+		s_LastTimePoint  = tclock::now();
 	}
 	void Timer::updateAll () {
-		time_point_t newTimePoint = std::chrono::monotonic_clock::now();
+		time_point_t newTimePoint = tclock::now();
 		s_Duration = newTimePoint - s_LastTimePoint;
 		updateAll(std::chrono::duration<type_t>(s_Duration).count());
 		s_LastTimePoint = newTimePoint;
@@ -74,7 +74,7 @@ namespace ace {
 		s_Elapsed = elapsed;
 	}
 	Timer::type_t Timer::getTimeSinceInit() {
-		return std::chrono::duration<type_t>(std::chrono::monotonic_clock::now() - s_FirstTimePoint).count();
+		return std::chrono::duration<type_t>(tclock::now() - s_FirstTimePoint).count();
 	}
 	
 }
