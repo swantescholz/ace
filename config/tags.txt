@@ -1,0 +1,2 @@
+keywordColor1 = orange
+keywordColor2 = blue

@@ -1,0 +1,37 @@
+<ui>
+	<menubar name='MenuBar'>
+		<menu action='MenuFile'>
+			<menuitem action='FileNew'/>
+			<menuitem action='FileOpen'/>
+			<menuitem action='FileClose'/>
+			<separator/>
+			<menuitem action='FileQuit'/>
+		</menu>
+		<menu action='MenuEdit'>
+			<menuitem action='EditCut'/>
+			<menuitem action='EditCopy'/>
+			<menuitem action='EditPaste'/>
+		</menu>
+		<menu action='MenuProject'>
+			<menuitem action='ProjectBuild'/>
+			<menuitem action='ProjectRun'/>
+		</menu>
+		<menu action='MenuView'>
+			<menuitem action='ViewMaximize'/>
+			<menuitem action='ViewFullscreen'/>
+		</menu>
+		<menu action='MenuHelp'>
+			<menuitem action='HelpHelp'/>
+			<separator/>
+			<menuitem action='HelpAbout'/>
+		</menu>
+	</menubar>
+	<toolbar name='ToolBar'>
+		<toolitem action='FileQuit'/>
+		<toolitem action='FileNew'/>
+		<toolitem action='FileOpen'/>
+		<toolitem action='ProjectBuild'/>
+		<toolitem action='ProjectRun'/>
+		<toolitem action='HelpAbout'/>
+	</toolbar>
+</ui>

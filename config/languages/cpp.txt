@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language id="c" _name="C" version="2.0" _section="Sources"
+		mimetypes="text/x-c;text/x-chdr;text/x-csrc">
+	<styles>
+		<style id="string" _name="String" map-to="def:string"/>
+		<style id="escaped-character" _name="Escaped Character" map-to="def:special-char"/>
+		<style id="preprocessor" _name="Preprocessor" map-to="def:preprocessor"/>
+		<style id="included-file" _name="Included File" map-to="def:string"/>
+		<style id="char" _name="Character" map-to="def:character"/>
+		<style id="keyword" _name="Keyword" map-to="def:keyword"/>
+		<style id="type" _name="Data Type" map-to="def:type"/>
+	</styles>
+	<definitions>
+		<context id="c">
+			<include>
+				<context id="comment" style-ref="comment">
+					  <start>\/\/</start>
+					  <end>$</end>
+				</context>
+				
+				<context id="string" end-at-line-end="true" style-ref="string">
+					<start>"</start>
+					<end>"</end>
+					<include>
+						<context id="escaped-character" style-ref="escaped-character">
+							<match>\\.</match>
+						</context>
+					</include>
+				</context>
+				
+				<context id="comment-multiline" style-ref="comment">
+					<start>\/\*</start>
+					<end>\*\/</end>
+					<include>
+						<context ref="def:in-comment"/>
+					</include>
+				</context>
+				
+				<context id="char" end-at-line-end="true" style-ref="char">
+					<start>'</start>
+					<end>'</end>
+					<include>
+						<context ref="escaped-character"/>
+					</include>
+				</context>
+				
+				<context ref="def:decimal"/>
+				<context ref="def:float"/>
+				
+				<context id="keywords" style-ref="keyword">
+					<keyword>if</keyword>
+					<keyword>else</keyword>
+					<keyword>for</keyword>
+					<keyword>while</keyword>
+					<keyword>return</keyword>
+					<keyword>break</keyword>
+					<keyword>switch</keyword>
+					<keyword>case</keyword>
+					<keyword>default</keyword>
+					<keyword>do</keyword>
+					<keyword>continue</keyword>
+					<keyword>goto</keyword>
+					<keyword>sizeof</keyword>
+				</context>
+				
+				<context id="types" style-ref="type">
+					<keyword>char</keyword>
+					<keyword>const</keyword>
+					<keyword>double</keyword>
+					<keyword>enum</keyword>
+					<keyword>float</keyword>
+					<keyword>int</keyword>
+					<keyword>long</keyword>
+					<keyword>short</keyword>
+					<keyword>signed</keyword>
+					<keyword>static</keyword>
+					<keyword>struct</keyword>
+					<keyword>typedef</keyword>
+					<keyword>union</keyword>
+					<keyword>unsigned</keyword>
+					<keyword>void</keyword>
+				</context>
+				
+				<context id="preprocessor" style-ref="preprocessor">
+					<prefix>^#</prefix>
+					<keyword>define</keyword>
+					<keyword>undef</keyword>
+					<keyword>if(n?def)?</keyword>
+					<keyword>else</keyword>
+					<keyword>elif</keyword>
+					<keyword>endif</keyword>
+				</context>
+				
+				<context id="if0-comment" style-ref="comment">
+					<start>^#if 0\b</start>
+					<end>^#(endif|else|elif)\b</end>
+					<include>
+						<context id="if-in-if0">
+							<start>^#if(n?def)?\b</start>
+							<end>^#endif\b</end>
+							<include>
+								<context ref="if-in-if0"/>
+							</include>
+						</context>
+					</include>
+				</context>
+				
+				<context id="include" style-ref="preprocessor">
+					<match>^#include (".*"|<.*>)</match>
+					<include>
+						<context id="included-file" sub-pattern="1" style-ref="inlcuded-file"/>
+					</include>
+				</context>
+
+			</include>
+		</context>
+	</definitions>
+</language>

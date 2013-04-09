@@ -1,0 +1,50 @@
+<ui>
+	<menubar name='MenuBar'>
+		<menu action='MenuFile'>
+			<menuitem action='FileNew'/>
+			<menuitem action='FileOpen'/>
+			<menuitem action='FileSave'/>
+			<menuitem action='FileSaveAs'/>
+			<menuitem action='FileClose'/>
+			<separator/>
+			<menuitem action='FileQuit'/>
+		</menu>
+		<menu action='MenuEdit'>
+			<menuitem action='EditUndo'/>
+			<menuitem action='EditRedo'/>
+			<menuitem action='EditCut'/>
+			<menuitem action='EditCopy'/>
+			<menuitem action='EditPaste'/>
+			<menuitem action='EditCloseBrace'/>
+			<menuitem action='EditAutoIndent'/>
+			<menuitem action='EditFindReplace'/>
+			<menuitem action='EditReloadConfigFile'/>
+		</menu>
+		<menu action='MenuProject'>
+			<menuitem action='ProjectBuild'/>
+			<menuitem action='ProjectRun'/>
+			<menuitem action='ProjectEditMakefile'/>
+		</menu>
+		<menu action='MenuView'>
+			<menuitem action='ViewMaximize'/>
+			<menuitem action='ViewFullscreen'/>
+		</menu>
+		<menu action='MenuHelp'>
+			<menuitem action='HelpHelp'/>
+			<separator/>
+			<menuitem action='HelpAbout'/>
+		</menu>
+	</menubar>
+	<toolbar name='ToolBar'>
+		<toolitem action='FileQuit'/>
+		<toolitem action='FileNew'/>
+		<toolitem action='FileOpen'/>
+		<toolitem action='FileSave'/>
+		<toolitem action='EditAutoIndent'/>
+		<toolitem action='EditFindReplace'/>
+		<toolitem action='EditReloadConfigFile'/>
+		<toolitem action='ProjectBuild'/>
+		<toolitem action='ProjectRun'/>
+		<toolitem action='HelpAbout'/>
+	</toolbar>
+</ui>

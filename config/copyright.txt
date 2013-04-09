@@ -1,0 +1,12 @@
+Ace Version 0.2
+(Advanced C++ Editor)
+2011-2012 by S. Scholz
+no rights reserved
+source code is open for inspection at
+nowhere@yet.sorry
+This program was written in C++ on Arch Linux using
+Eclipse-CDT as Development Environment and
+gtkmm as GUI.
+Eclipse is great - in the true sense of the word -
+so I wanted to create something more light-weight and
+faster yet nearly as comfortable and flexible.
