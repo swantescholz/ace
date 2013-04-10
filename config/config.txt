@@ -1,8 +1,8 @@
 programName=Ace Version 0.1
-aceExec='/home/swante/workspace/Ace/Ace'
+aceExec='/home/swante/ace/ace'
 iconPath=res/icons/icon.png
 width=600
-height=600
+height=500
 maximized=0
 fullscreen=0
 vpanedSeperatorPosition=500

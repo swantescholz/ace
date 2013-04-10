@@ -7,8 +7,9 @@ using namespace Gtk;
 
 namespace ace {
 
-Application::Application() {
+Application::Application(std::string aceExecName) {
 	//GTK_WIDGET_CLASS(gtk_source_view)->key_press_event = SourceView::key_press_event;
+	m_rootPath = util::getDirOfPath(aceExecName, true);
 	
 	m_stopFifoThread = false;
 	m_chBufferSize = 50000;
@@ -91,7 +92,7 @@ void Application::init() {
 	}
 }
 void Application::loadConfigFile(const std::string& name) {
-	if(true || !util::fileExists(name)) {
+	if(!util::fileExists(name)) {
 		Textfile::saveFile(s_sDefaultConfig, name);
 	}
 	Textfile tf;
@@ -187,7 +188,7 @@ void Application::openFifo() {
 	int result = 0;
 	int i = 1;
 	do {
-		m_fifoName = ACE_FIFO_NAME+util::lex(i);
+		m_fifoName = m_rootPath + ACE_FIFO_NAME + util::lex(i);
 		m_fifoNum  = i;
 		cout << "FIFO_NAME: " << m_fifoName << endl;
 		result = mkfifo(m_fifoName.c_str(), S_IRUSR | S_IWUSR);
@@ -256,19 +257,11 @@ void Application::openFile() {
 	const int result = dialog.run();
 	m_lastAccessedDir = dialog.get_current_folder();
 	if (result == Gtk::RESPONSE_OK) {
-		std::string filename = dialog.get_filename();
-		std::string path = util::getDirOfPath (filename);
-		std::string name = util::getFileOfPath(filename);
-		auto tab = getCurrentTab();
-		tab->name = name;
-		tab->path = path;
-		tab->view.beginUndoableAction();
-		tab->view.setText(Textfile::readFile(tab->path+tab->name));
-		tab->view.endUndoableAction();
-		tab->view.isModified(true);
-		tab->isnew = false;
-		updateTabLanguage(tab);
-		m_notebook.set_tab_label_text(tab->window, tab->name); //without *
+		auto filename = dialog.get_filename();
+		auto path = util::getDirOfPath (filename);
+		auto name = util::getFileOfPath(filename);
+		auto text = Textfile::readFile(path + name);
+		addTab(name,text,false,path);
 		std::cout << "File selected: " <<  filename << std::endl;
 	}
 	else {

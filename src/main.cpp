@@ -23,9 +23,11 @@ void init(int argc, char **argv) {
 			return;
 		}
 	}
+	
+	cout << "aceExecName: " <<  argv[0] << endl;
 	Gtk::Main main_obj(argc, argv);
 	ace::Application *win = nullptr;
-	win = new ace::Application();
+	win = new ace::Application(argv[0]);
 	try {
 		main_obj.run(*win);
 	}

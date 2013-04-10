@@ -29,7 +29,7 @@ struct Terminal {
 
 class Application : public Gtk::Window {
 public:
-	Application();
+	Application(std::string aceExecName);
 	~Application();
 public:
 	void actNewFile     () {newFile    ();}
@@ -79,7 +79,10 @@ private:
 private:
 	Glib::RefPtr<Gtk::TextBuffer> createTextBuffer();
 	void init();
-	void loadConfigFile(const std::string& name = "config/config.txt");
+	void loadConfigFile() {
+		loadConfigFile(m_rootPath + "config/config.txt");
+	}
+	void loadConfigFile(const std::string& name);
 	void loadSourceViewOptions(SourceView& view);
 	void loadIcons(const std::string& start, const std::string& end);
 	void addTab(const std::string& tabname, const std::string& text, bool isnew = true, const std::string& tabpath = "");
@@ -99,6 +102,7 @@ private:
 	std::list<std::shared_ptr<Tab>> m_tabs;
 	Glib::RefPtr<Glib::TimeoutSource> m_timeoutSource;
 	
+	std::string m_rootPath;
 	std::string m_fifoName;
 	std::string m_textForTerminal;
 	

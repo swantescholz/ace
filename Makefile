@@ -18,7 +18,7 @@ $(EXEC): $(OBJ)
 clean:
 	rm $(EXEC) $(OBJ)
 run:
-	./$EXEC
+	./$(EXEC)
 
 
 #Special symbols used:
