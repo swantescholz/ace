@@ -4,26 +4,19 @@
 namespace ace {
 
 void selfCall(int num) {
-	std::string s = "", sall = "";
-	int max = 50000;
+	int max = 5000;
 	char *ch = new char[max];
 	for(int i = 0;; ++i) {
 		cin.getline(ch, max);
-		s = std::string(ch);
-		sall += s;
 		if(cin.eof()) {
-			if(s.empty()) {
-				sall.erase(sall.length()-1);
-			}
 			break;
 		}
-		sall += "\n";
-		cout << i << "\t: " << s << endl;
+		auto line = std::string(ch) + "\n";
+		cout << i << "\t: " << line << endl;
+		FILE* fifo = fopen((ACE_FIFO_NAME + util::lex(num)).c_str(), "w");
+		fwrite(line.c_str(), 1, line.length(), fifo);
+		fclose(fifo);
 	}
-	cout << sall << endl;
-	FILE* fifo = fopen((ACE_FIFO_NAME + util::lex(num)).c_str(), "w");
-	fwrite(sall.c_str(), 1, sall.length(), fifo);
-	fclose(fifo);
 	delete[] ch; ch = nullptr;
 }
 

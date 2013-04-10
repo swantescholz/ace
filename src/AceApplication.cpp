@@ -65,7 +65,9 @@ Application::Application(std::string aceExecName) {
 	m_vpaned.add2(m_terminal.window);
 	m_vbox.pack_start(m_vpaned);
 	this->add(m_vbox);
-	m_vpaned.set_position(util::lex<int>(m_config["vpanedSeperatorPosition"]));
+	int width = 0, height = 0;
+	get_size(width,height);
+	m_vpaned.set_position(height * (1.0-util::lex<double>(m_config["terminalRelativeHeight"])));
 	if(m_tabs.empty()) {addTab("NewFile", "", true);}
 	show_all_children();
 }
@@ -207,12 +209,12 @@ void Application::checkFifo() {
 		fclose(m_fifo);
 		if(numread <= 0) return;
 		m_chBuffer[numread] = '\0';
-		m_textForTerminal = std::string(m_chBuffer);
+		m_textForTerminal += std::string(m_chBuffer);
 	}
 }
 bool Application::timeCallback() {
 	if(!m_textForTerminal.empty()) {
-		m_terminal.view.setText(m_textForTerminal);
+		m_terminal.view.setText(m_terminal.view.getText() + m_textForTerminal);
 		m_textForTerminal.clear();
 	}
 	auto tab = getCurrentTab();
@@ -325,76 +327,23 @@ void Application::closeFile() {
 	}
 	updateLastOpened();
 }
-void Application::quit() {
-	Gtk::Main::quit();
-}
-void Application::undo() {
-	cout << "UNDO" << endl;
-	auto tab = getCurrentTab();
-	if(tab->view.canUndo()) {
-		tab->view.undo();
-	}
-}
-void Application::redo() {
-	cout << "REDO" << endl;
-	auto tab = getCurrentTab();
-	if(tab->view.canRedo()) {
-		tab->view.redo();
-	}
-}
-void Application::cut() {
-	cout << "CUT" << endl;
-	auto tab = getCurrentTab();
-	tab->view.cutClipboard();
-}
-void Application::copy() {
-	cout << "COPY" << endl;
-	auto tab = getCurrentTab();
-	tab->view.copyClipboard();
-}
-void Application::paste() {
-	cout << "PASTE" << endl;
-	auto tab = getCurrentTab();
-	tab->view.pasteClipboard();
-}
-void Application::closeBrace() {
-	cout << "CLOSE BRACE" << endl;
-	auto tab = getCurrentTab();
-	tab->view.closeBrace();
-}
-void Application::autoIndent() {
-	cout << "AUTO INDENT" << endl;
-	auto tab = getCurrentTab();
-	tab->view.autoIndentSelection();
-}
-void Application::findReplace() {
-	cout << "FIND/REPLACE" << endl;
-}
-void Application::showHelp() {
-	cout << "HELP" << endl;
-	Gtk::MessageDialog dialog(*this, "Ace Help", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(s_sDefaultHelp);
-	dialog.run();
-}
-void Application::showAbout() {
-	cout << "ABOUT" << endl;
-	Gtk::MessageDialog dialog(*this, "Ace About", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(s_sDefaultAbout);
-	dialog.run();
-}
+
 void Application::buildProject() {
 	cout << "BUILD PROJECT" << endl;
 	auto tab = getCurrentTab();
+	m_terminal.view.setText("");
 	if(tab->isnew) {
 		m_textForTerminal = "Error: File '" + tab->name + "' not saved.";
 		return;
 	}
-	std::string path = tab->path, makefilePath;
+	auto makefileName = m_config["makefileName"];
+	auto path = tab->path;
 	path.erase(path.length()-1);
 	while(true) {
-		makefilePath = path+"/"+m_config["makefileName"];
+		auto makefilePath = path+"/"+makefileName;
 		if(util::fileExists(makefilePath)) {
-			util::system("make -f " + makefilePath+" 2>&1 | "+m_config["aceExec"] + " --self" + util::lex(m_fifoNum));
+			util::system("make -C " + path + " -f " + makefileName +" 2>&1 | "+m_config["aceExec"] +
+				" --self" + util::lex(m_fifoNum) + " &");
 			break;
 		}
 		if(path.length() <= 0) {
@@ -479,6 +428,64 @@ void Application::openMakefile() {
 		}
 		path = util::getDirOfPath(path, false);
 	}
+}
+
+void Application::quit() {
+	Gtk::Main::quit();
+}
+void Application::undo() {
+	cout << "UNDO" << endl;
+	auto tab = getCurrentTab();
+	if(tab->view.canUndo()) {
+		tab->view.undo();
+	}
+}
+void Application::redo() {
+	cout << "REDO" << endl;
+	auto tab = getCurrentTab();
+	if(tab->view.canRedo()) {
+		tab->view.redo();
+	}
+}
+void Application::cut() {
+	cout << "CUT" << endl;
+	auto tab = getCurrentTab();
+	tab->view.cutClipboard();
+}
+void Application::copy() {
+	cout << "COPY" << endl;
+	auto tab = getCurrentTab();
+	tab->view.copyClipboard();
+}
+void Application::paste() {
+	cout << "PASTE" << endl;
+	auto tab = getCurrentTab();
+	tab->view.pasteClipboard();
+}
+void Application::closeBrace() {
+	cout << "CLOSE BRACE" << endl;
+	auto tab = getCurrentTab();
+	tab->view.closeBrace();
+}
+void Application::autoIndent() {
+	cout << "AUTO INDENT" << endl;
+	auto tab = getCurrentTab();
+	tab->view.autoIndentSelection();
+}
+void Application::findReplace() {
+	cout << "FIND/REPLACE" << endl;
+}
+void Application::showHelp() {
+	cout << "HELP" << endl;
+	Gtk::MessageDialog dialog(*this, "Ace Help", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
+	dialog.set_secondary_text(s_sDefaultHelp);
+	dialog.run();
+}
+void Application::showAbout() {
+	cout << "ABOUT" << endl;
+	Gtk::MessageDialog dialog(*this, "Ace About", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
+	dialog.set_secondary_text(s_sDefaultAbout);
+	dialog.run();
 }
 
 //---------------------------------------------------

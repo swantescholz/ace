@@ -18,13 +18,11 @@ struct Tab {
 	bool        isnew;
 	Gtk::ScrolledWindow             window;
 	SourceView                      view;
-	//Glib::RefPtr<Gtk::TextBuffer>   buffer;
 };
 
 struct Terminal {
 	Gtk::ScrolledWindow             window;
 	SourceView                      view;
-	//Glib::RefPtr<Gtk::TextBuffer>   buffer;
 };
 
 class Application : public Gtk::Window {
