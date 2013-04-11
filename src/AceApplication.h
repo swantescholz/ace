@@ -90,6 +90,7 @@ private:
 	bool timeCallback();
 	void updateTabLanguage(std::shared_ptr<Tab>& tab);
 	void updateLastOpened(); //saves the last opened tabs and accessed paths
+	void clearTerminal();	
 	
 	Glib::RefPtr<Gtk::ActionGroup>  m_actionGroup;
 	Glib::RefPtr<Gtk::UIManager>    m_uiManager;

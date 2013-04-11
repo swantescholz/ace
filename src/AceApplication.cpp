@@ -1,14 +1,14 @@
 #include "AceApplication.h"
 #include "AceUtil.h"
 #include <unistd.h>
-//#include <gtksourceview/gtksourceview.h>
 
 using namespace Gtk;
 
 namespace ace {
 
+#define mymemfun(X) sigc::mem_fun(*this, &Application::X)
+
 Application::Application(std::string aceExecName) {
-	//GTK_WIDGET_CLASS(gtk_source_view)->key_press_event = SourceView::key_press_event;
 	m_rootPath = util::getDirOfPath(aceExecName, true);
 	
 	m_stopFifoThread = false;
@@ -24,7 +24,7 @@ Application::Application(std::string aceExecName) {
 	m_actionGroup->add( Action::create("MenuView"       , "_View"   ));
 	m_actionGroup->add( Action::create("MenuProject"    , "_Project"));
 	m_actionGroup->add( Action::create("MenuHelp"       , "_Help"   ));
-	m_actionGroup->add( Action::create("FileNew"        , Stock::NEW    ), sigc::mem_fun(*this, &Application::actNewFile));
+	m_actionGroup->add( Action::create("FileNew"        , Stock::NEW    ), mymemfun(actNewFile));
 	m_actionGroup->add( Action::create("FileOpen"       , Stock::OPEN   ), sigc::mem_fun(*this, &Application::actOpen   ));
 	m_actionGroup->add( Action::create("FileSave"       , Stock::SAVE   ), sigc::mem_fun(*this, &Application::actSave   ));
 	m_actionGroup->add( Action::create("FileSaveAs"     , Stock::SAVE_AS), AccelKey("<control><shift>s"), sigc::mem_fun(*this, &Application::actSaveAs ));
@@ -61,6 +61,7 @@ Application::Application(std::string aceExecName) {
 	m_terminal.view.setHighlightCurrentLine(false);
 	m_terminal.view.setEditable(false);
 	m_terminal.view.addToContainer(m_terminal.window);
+	m_notebook.set_scrollable(true);
 	m_vpaned.add1(m_notebook);
 	m_vpaned.add2(m_terminal.window);
 	m_vbox.pack_start(m_vpaned);
@@ -176,6 +177,7 @@ void Application::addTab(const std::string& tabname, const std::string& text, bo
 	updateTabLanguage(tab);
 	tab->view.addToContainer(tab->window);
 	m_notebook.append_page(tab->window, tab->name + ((isnew)?"*":""));
+	m_notebook.set_tab_reorderable(tab->window, true);
 	m_notebook.show_all();
 	m_notebook.set_current_page(m_notebook.get_n_pages()-1);
 	m_tabs.push_back(tab);
@@ -194,7 +196,6 @@ void Application::openFifo() {
 		m_fifoNum  = i;
 		cout << "FIFO_NAME: " << m_fifoName << endl;
 		result = mkfifo(m_fifoName.c_str(), S_IRUSR | S_IWUSR);
-		//result = mkfifo(m_fifoName.c_str(), 0666);
 		++i;
 	} while(result < 0);
 	m_fifoThread = new std::thread([this](){this->checkFifo();});
@@ -215,7 +216,10 @@ void Application::checkFifo() {
 bool Application::timeCallback() {
 	if(!m_textForTerminal.empty()) {
 		m_terminal.view.setText(m_terminal.view.getText() + m_textForTerminal);
-		m_textForTerminal.clear();
+		m_textForTerminal.clear();	
+		auto vadj = m_terminal.window.get_vadjustment();
+		auto newValue = vadj->get_upper() - vadj->get_page_size();
+		vadj->set_value(newValue);	
 	}
 	auto tab = getCurrentTab();
 	if(tab->view.isModified(true)) {
@@ -327,11 +331,14 @@ void Application::closeFile() {
 	}
 	updateLastOpened();
 }
-
+void Application::clearTerminal() {
+	m_terminal.view.setText("");	
+}
 void Application::buildProject() {
 	cout << "BUILD PROJECT" << endl;
-	auto tab = getCurrentTab();
-	m_terminal.view.setText("");
+	saveFile();
+	clearTerminal();
+	auto tab = getCurrentTab();	
 	if(tab->isnew) {
 		m_textForTerminal = "Error: File '" + tab->name + "' not saved.";
 		return;
@@ -358,6 +365,7 @@ void Application::buildProject() {
 }
 void Application::runProject() {
 	cout << "RUN PROJECT" << endl;
+	clearTerminal();
 	auto tab = getCurrentTab();
 	if(tab->isnew) {
 		m_textForTerminal = "Error: File '" + tab->name + "' not saved.";
@@ -368,33 +376,10 @@ void Application::runProject() {
 	while(true) {
 		makefilePath = path+"/"+m_config["makefileName"];
 		if(util::fileExists(makefilePath)) {
-			std::string execName;
-			std::vector<std::string> lines;
-			Textfile::readFile(makefilePath, lines);
-			for(auto s : lines) {
-				if(s.find("NAME") != std::string::npos) {
-					execName = s.substr(s.find("=")+1);
-					while(true) {
-						if(execName.at(0) == ' ' || execName.at(0) == '\t')
-							execName.erase(0,1);
-						else break;
-					}
-					cout << execName << endl;
-					break;
-				}
-			}
-			if(execName.empty()) {
-				m_textForTerminal = "Executable NAME not found in Makefile";
-			} else {
-				std::string execPath = path+"/"+execName;
-				if(util::fileExists(execPath)) {
-					std::string str = "'" + execPath +"'"+" 2>&1 | "+m_config["aceExec"] + " --self" + util::lex(m_fifoNum);
-					cout << "exec: " << str << endl;
-					util::system(str);
-				} else {
-					m_textForTerminal = "No Executable to run found";
-				}
-			}
+			std::string cmd = "make -C " + path + " run 2>&1 | " + m_config["aceExec"];
+			cmd += " --self" + util::lex(m_fifoNum);
+			cout << "exec: " << cmd << endl;
+			util::system(cmd);
 			break;
 		}
 		if(path.length() <= 0) {
