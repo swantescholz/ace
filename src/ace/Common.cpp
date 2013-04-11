@@ -1,6 +1,6 @@
 #include "Common.h"
 
-namespace tdd {
+namespace ace {
 
 #define implop(T) \
 	std::string& operator+=(std::string& s, T i) {s += std::to_string(i); return s;} \

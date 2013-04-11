@@ -102,7 +102,7 @@ void Application::loadConfigFile(const std::string& name) {
 	}
 	Textfile tf;
 	tf.readAt(name);
-	m_config = util.mapConfigFile(tf.getText(), true, true);
+	util.mapConfigFile(m_config, tf.getText(), true, true);
 	m_maximized  = (util.lex<int>(m_config["maximized" ]) != 0);
 	m_fullscreen = (util.lex<int>(m_config["fullscreen"]) != 0);
 	set_title(m_config["programName"]);

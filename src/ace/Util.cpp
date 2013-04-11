@@ -6,9 +6,11 @@
 #include <cstring>
 #include <cstdlib>
 #include <chrono>
+#include <fstream>
 
 #include "Timer.h"
 #include "Exception.h"
+#include "String.h"
 
 namespace ace {
 
@@ -38,12 +40,10 @@ std::string Util::getFileOfPath(std::string ps) {
 	if (pos == std::string::npos) return ps;
 	return ps.substr(pos+1);
 }
-std::map<std::string, std::string> Util::mapConfigFile(std::string str, bool ignoreWhitespaceBefore, bool ignoreWhitespaceAfter) {
-	std::vector<std::string> lines;
-	stringToLines(str, lines);
+void Util::mapConfigFile(std::map<std::string,std::string>& m, std::string str, bool ignoreWhitespaceBefore, bool ignoreWhitespaceAfter) {
+	auto lines = String(str).toLines();
 	std::string a,b;
 	std::string::size_type pos;
-	std::map<std::string, std::string> m;
 	for(auto i : lines) {
 		pos = i.find("=");
 		if(pos != std::string::npos) {
@@ -54,67 +54,6 @@ std::map<std::string, std::string> Util::mapConfigFile(std::string str, bool ign
 			m.insert(std::make_pair(a,b));
 		}
 	}
-	return std::move(m);
-}
-std::string Util::addLineNumbersToString(std::string str, const std::string& indent) {
-	long numLines = 1;
-	size_t pos = 0;
-	for(;;) {
-		pos = str.find("\n", pos);
-		if (pos == std::string::npos) break;
-		++pos;
-		++numLines;
-	}
-	const int numLength = util::lex(numLines).length();
-	str = util::addZeros("1", numLength) + indent + str;
-	numLines = 2;
-	pos = 0;
-	for(;;) {
-		pos = str.find("\n", pos);
-		if (pos == std::string::npos) break;
-		str.replace(pos, 1, "\n"+util::addZeros(util::lex(numLines), numLength) + indent);
-		++pos;
-		++numLines;
-	}
-	return str;
-}
-std::string Util::deleteComments(std::string str, const std::string& com_line,
-	const std::string& com_block1,
-	const std::string& com_block2, bool deleteWhiteLines) {
-	size_t pos1 = 0, pos2, tmp1, tmp2;
-	
-	for(;;) {
-		pos1 = str.find(com_line, pos1);
-		if (pos1 == std::string::npos) break;
-		pos2 = str.find("\n", pos1);
-		if (pos2 == std::string::npos)
-			str.erase(pos1);
-		else
-			str.erase(pos1, pos2-pos1);
-		if (deleteWhiteLines) {
-			//whitespaces?
-			tmp1 = str.rfind("\n", pos1-1);
-			if (tmp1 == std::string::npos) tmp1 = 0;
-			tmp2 = str.find ("\n", pos1);
-			if (tmp2 == std::string::npos) tmp2 = str.length()-1;
-			if (util::isStringWhitespace(str.substr(tmp1, tmp2-tmp1))) {
-				str.erase(tmp1, tmp2-tmp1);
-			}
-		}
-	}
-	pos1 = 0;
-	for(;;) {
-		pos1 = str.find(com_block1, pos1);
-		if (pos1 == std::string::npos) break;
-		pos2 = str.find(com_block2, pos1);
-		if (pos2 == std::string::npos) { //end reached
-			str.erase(pos1);
-			break;
-		}
-		else
-			str.erase(pos1, pos2-pos1+com_block2.length());
-	}
-	return str;
 }
 
 bool Util::fileExists(const std::string& sPath) {

@@ -12,8 +12,8 @@ namespace ace {
 
 class Util : public Singleton<Util> {
 public:
-	Util();
-	~Util();
+	Util() {};
+	~Util() {};
 
 	static constexpr double defaultEpsilon = 0.0001;	
 	bool almostEqual(double a, double b, double epsilon = defaultEpsilon);
@@ -22,7 +22,7 @@ public:
 	std::string getDirOfPath (std::string  ps, bool includeLastSlash = true);
 	std::string getFileOfPath(std::string  ps);
 
-	std::map<std::string, std::string> mapConfigFile(std::string str, bool ignoreWhitespaceBefore = true, bool ignoreWhitespaceAfter = true); //fills a map with X=Y
+	void mapConfigFile(std::map<std::string,std::string>& m, std::string str, bool ignoreWhitespaceBefore = true, bool ignoreWhitespaceAfter = true); //fills a map with X=Y
 
 	//files
 	bool  fileExists  (const std::string& sPath); //does this file exist?

@@ -7,7 +7,7 @@ fix autoindent for multiline statements
 make file search more standardized
 save when build/run
 implement find/replace
-set window title to tab file path
+set window title to tab file path with signal changed
 save source file scroll position
 autoscroll terminal
 remember the last opened tab

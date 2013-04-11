@@ -8,21 +8,18 @@ namespace ace {
 template <typename T>
 class Singleton {
 protected:
-	static std::shared_ptr<T> instance;
 	Singleton() {}
+	virtual ~Singleton() {}
 private:
 	Singleton(const Singleton& other) = delete;
 	Singleton& operator= (const Singleton& other) = delete;
 public:
 	static T& getInstance() {
-		if (instance.get() == nullptr)
-			instance.reset(new T());
-		return *(instance.get());
+		static T instance;
+		return instance;
 	}
 		
 };
-
-template<typename T> std::shared_ptr<T> Singleton<T>::instance;
 
 } // namespace ace
 
