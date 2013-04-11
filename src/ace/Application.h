@@ -58,10 +58,7 @@ private:
 	Glib::RefPtr<Gtk::TextBuffer> createTextBuffer();
 	void init();
 	void initGui();
-	void loadDefaultConfigFile() {
-		loadConfigFile(m_rootPath + "config/config.txt");
-	}
-	void loadConfigFile(const std::string& name);
+	void loadConfigFile();
 	void loadSourceViewOptions(SourceView& view);
 	void loadIcons(const std::string& start, const std::string& end);
 	void addTab(const std::string& tabname, const std::string& text, bool isnew = true, const std::string& tabpath = "");
@@ -72,6 +69,7 @@ private:
 	void updateTabLanguage(std::shared_ptr<Tab>& tab);
 	void updateLastOpened(); //saves the last opened tabs and accessed paths
 	void clearTerminal();	
+	void stopFifoThread();
 	
 	Glib::RefPtr<Gtk::ActionGroup>  m_actionGroup;
 	Glib::RefPtr<Gtk::UIManager>    m_uiManager;
@@ -87,11 +85,8 @@ private:
 	std::string m_textForTerminal;
 	
 	int m_fifoNum;
-	FILE* m_fifo;
-	char* m_chBuffer;
-	int m_chBufferSize;
 	bool m_stopFifoThread = false;
-	std::thread *m_fifoThread;
+	std::thread *m_fifoThread = nullptr;
 	std::map<std::string, std::string> m_config;
 	bool m_maximized, m_fullscreen;
 	std::string m_lastAccessedDir;

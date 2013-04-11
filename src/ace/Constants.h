@@ -11,9 +11,13 @@ namespace ace {
 class Constants : public Singleton<Constants> {
 public:
 
-	static const std::string DefaultAbout, DefaultHelp;
-	static const std::string DefaultMakefile, DefaultUi, DefaultConfig;
-
+	static const std::string defaultAbout, defaultHelp;
+	static const std::string defaultMakefile, defaultUi, defaultConfig;
+	static const std::string configPath;
+	static const std::string lastOpenedTabsPath, lastOpenedPathPath;
+	static const std::string uiPath;
+	static const std::string makefileName;
+	static const std::string makefileTemplatePath;
 };
 
 } // namespace ace

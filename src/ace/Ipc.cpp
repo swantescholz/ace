@@ -18,10 +18,12 @@ namespace ace {
 
 void Ipc::runThread(string fifoName) {
 	while (!stopThread) {
-		this_thread::sleep_for(chrono::milliseconds(100));
+		util.sleep(100ms);
 		mtx.lock();
+		cout << "tr: " << input << endl;
 		if (!input.empty()) {
 			FILE* fifo = fopen(fifoName.c_str(), "w");
+			cout << "input: " << input.c_str() << endl;
 			fwrite(input.c_str(), 1, input.length(), fifo);
 			input.clear();
 			fclose(fifo);
@@ -31,6 +33,10 @@ void Ipc::runThread(string fifoName) {
 }
 
 void Ipc::selfCall(int num) {
+	for (int i = 0; i < 11; i++) {
+		util.sleep(500ms);
+		cout << "hello call" << endl;
+	}
 	auto fifoName = (ACE_FIFO_NAME + util.lex(num)).c_str();
 	thread t([&]{runThread(fifoName);});
 	for(int i = 0;; ++i) {

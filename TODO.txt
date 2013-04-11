@@ -10,3 +10,4 @@ save source file scroll position
 autoscroll terminal
 remember the last opened tab
 IPC improvement
+c++ highlighting!

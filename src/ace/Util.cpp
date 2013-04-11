@@ -6,13 +6,20 @@
 #include <cstring>
 #include <cstdlib>
 #include <chrono>
+#include <thread>
 #include <fstream>
 
 #include "Timer.h"
 #include "Assert.h"
 #include "String.h"
 
+using namespace std;
+
 namespace ace {
+
+void Util::sleep(double sec) {
+	this_thread::sleep_for(chrono::microseconds((long long int)(sec * 1000000.0)));
+}
 
 bool Util::almostEqual(double a, double b, double epsilon) {
 	return std::abs(a - b) <= ( (std::abs(a) < std::abs(b) ? std::abs(b) : std::abs(a)) * epsilon);

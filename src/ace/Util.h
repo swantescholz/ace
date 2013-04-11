@@ -6,13 +6,17 @@
 #include "Common.h"
 #include "Singleton.h"
 
-namespace ace {
-
 #define util (Util::getInstance())
+
+double operator"" ms(unsigned long long int v) {return double(v) / 1000.0;}
+
+namespace ace {
 
 class Util : public Singleton<Util> {
 public:
 
+	void sleep(double sec);
+	
 	static constexpr double defaultEpsilon = 0.0001;	
 	bool almostEqual(double a, double b, double epsilon = defaultEpsilon);
 	

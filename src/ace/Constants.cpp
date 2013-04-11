@@ -2,11 +2,20 @@
 
 namespace ace {
 
-const std::string Constants::DefaultAbout =
+const std::string Constants::configPath = "config/config.txt";
+const std::string Constants::lastOpenedPathPath = "config/lastOpenedPath.txt";
+const std::string Constants::lastOpenedTabsPath = "config/lastOpenedTabs.txt";
+const std::string Constants::uiPath = "config/ui.xml";
+const std::string Constants::makefileName = "Makefile";
+const std::string Constants::makefileTemplatePath = "config/MakefileTemplate";
+
+//========================================
+
+const std::string Constants::defaultAbout =
 	R"(Default About)";
-const std::string Constants::DefaultHelp =
+const std::string Constants::defaultHelp =
 	R"(Default Help)";
-const std::string Constants::DefaultMakefile =
+const std::string Constants::defaultMakefile =
 	R"(#Ace standard makefile
 #WIN or LIN
 OS   = LIN
@@ -48,7 +57,7 @@ clean:
 	rm -f $(SRCDIR)/*.o)";
 	
 	
-const std::string Constants::DefaultUi =
+const std::string Constants::defaultUi =
 	R"(<ui>
 	<menubar name='MenuBar'>
 		<menu action='MenuFile'>
@@ -101,7 +110,7 @@ const std::string Constants::DefaultUi =
 </ui>)";
 
 
-const std::string Constants::DefaultConfig =
+const std::string Constants::defaultConfig =
 	R"(programName=Ace Version 0.1
 iconPath=res/icons/icon.png
 width=600

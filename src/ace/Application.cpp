@@ -21,12 +21,22 @@ Application::Application(std::string aceExecName) {
 	m_rootPath = util.getDirOfPath(aceExecName, true);
 	m_config["aceExec"] = aceExecName;
 	
-	m_chBufferSize = 50000;
-	m_chBuffer = new char[m_chBufferSize];
-	
 	init();
 	initGui();
-	
+}
+
+Application::~Application() {
+	updateLastOpened();
+	stopFifoThread();
+}
+
+void Application::stopFifoThread() {
+	m_stopFifoThread = true;
+	FILE* fifo = fopen(m_fifoName.c_str(), "w");
+	m_fifoThread->join();
+	fclose(fifo);
+	util.removeFile(m_fifoName);
+	delete m_fifoThread; m_fifoThread = nullptr;
 }
 
 void Application::initGui() {
@@ -59,7 +69,7 @@ void Application::initGui() {
 	addc(actCreate("EditCloseBrace" ,"Close Brace"  ), mymemfun(closeBrace), "braceright");
 	addc(actCreate("EditAutoIndent" , Stock::INDENT, "Auto Indent" ), mymemfun(autoIndent), "<control>i");
 	addb(actCreate("EditFindReplace", Stock::FIND_AND_REPLACE), mymemfun(findReplace ));
-	addc(actCreate("EditReloadConfigFile", Stock::PREFERENCES, "Reload Config File"), mymemfun(loadDefaultConfigFile), "<control><shift>r");
+	addc(actCreate("EditReloadConfigFile", Stock::PREFERENCES, "Reload Config File"), mymemfun(loadConfigFile), "<control><shift>r");
 	auto maximizeAction = ToggleAction::create("ViewMaximize", "Maximize", "Maximize Window", m_maximized ); 
 	auto fullscreenAction = ToggleAction::create("ViewFullscreen", Stock::FULLSCREEN,"",""    , m_fullscreen );
 	auto buildAction = Action::create_with_icon_name("ProjectBuild", "build", "Build", "Build current project" );
@@ -99,40 +109,44 @@ void Application::initGui() {
 	show_all_children();
 }
 
-Application::~Application() {
-	updateLastOpened();
-	delete[] m_chBuffer; m_chBuffer = nullptr;
-	m_stopFifoThread = true;
-	FILE* fifo = fopen(m_fifoName.c_str(), "w");
-	m_fifoThread->join();
-	fclose(fifo);
-	util.removeFile(m_fifoName);
-	delete m_fifoThread; m_fifoThread = nullptr;
-}
 void Application::init() {
 	m_uiManager = UIManager::create();
 	openFifo();
-	loadDefaultConfigFile();
+	loadConfigFile();
 	loadIcons("res/icons/", ".png");
 	std::vector<std::string> stabs;
-	Textfile::readFile(m_config["lastOpenedTabsPath"], stabs);
+	Textfile::readFile(constants.lastOpenedTabsPath, stabs);
 	for(auto s : stabs) {
 		if(!s.empty()) {
 			try {
 				auto text = Textfile::readFile(s);
 				addTab(util.getFileOfPath(s), text, false, util.getDirOfPath(s));
 			} catch (shared_ptr<AssertionException> ex) {
+				cout << "unable to open previously opened tab " << s << endl;
 				cout << ex->toString() << endl;
 			}
 		}
 	}
 }
-void Application::loadConfigFile(const std::string& name) {
+
+void validateConfigFiles() {
+	auto checkFile = [](string filename, string defaultText) {
+		if(!util.fileExists(filename)) {
+			Textfile::saveFile(defaultText, filename);
+		}
+	};
+	checkFile(constants.configPath, constants.defaultConfig);
+	checkFile(constants.lastOpenedPathPath, "~");
+	checkFile(constants.lastOpenedTabsPath, "");
+	checkFile(constants.uiPath, constants.defaultUi);
+	checkFile(constants.makefileTemplatePath, constants.defaultMakefile);
+}
+
+void Application::loadConfigFile() {
 	cout << "(RE)LOAD CONFIG FILE" << endl;
-	if(!util.fileExists(name)) {
-		Textfile::saveFile(constants.DefaultConfig, name);
-	}
-	auto text = Textfile::readFile(name);
+	validateConfigFiles();
+	
+	auto text = Textfile::readFile(constants.configPath);
 	util.mapConfigFile(m_config, text, true, true);
 	m_maximized  = (util.lex<int>(m_config["maximized" ]) != 0);
 	m_fullscreen = (util.lex<int>(m_config["fullscreen"]) != 0);
@@ -141,21 +155,10 @@ void Application::loadConfigFile(const std::string& name) {
 	set_size_request(util.lex<int>(m_config["width"]), util.lex<int>(m_config["height"]));
 	if(m_maximized ) maximize();
 	if(m_fullscreen) fullscreen();
-	if(!util.fileExists(m_config["lastOpenedPathPath"])) {
-		Textfile::saveFile("~", m_config["lastOpenedPathPath"]);
-	}
-	if(!util.fileExists(m_config["lastOpenedTabsPath"])) {
-		Textfile::saveFile(std::string(""), m_config["lastOpenedTabsPath"]);
-	}
-	if(true || !util.fileExists(m_config["uiPath"])) {
-		Textfile::saveFile(constants.DefaultUi, m_config["uiPath"]);
-	}
-	if(true || !util.fileExists(m_config["makefileTemplatePath"])) {
-		Textfile::saveFile(constants.DefaultMakefile, m_config["makefileTemplatePath"]);
-	}
-	m_lastAccessedDir = Textfile::readFile(m_config["lastOpenedPathPath"]);
-	m_uiManager->add_ui_from_string(Textfile::readFile(m_config["uiPath"]));
-	m_makefileTemplate = Textfile::readFile(m_config["makefileTemplatePath"]);
+
+	m_lastAccessedDir = Textfile::readFile(constants.lastOpenedPathPath);
+	m_uiManager->add_ui_from_string(Textfile::readFile(constants.uiPath));
+	m_makefileTemplate = Textfile::readFile(constants.makefileTemplatePath);
 }
 
 int getSmartHomeEndModeForIndex(int index) {
@@ -227,28 +230,32 @@ std::shared_ptr<Tab> Application::getCurrentTab() {
 }
 void Application::openFifo() {
 	int index = 1;
+	bool mkfifoFailed;
 	do {
-		m_fifoName = m_rootPath + ACE_FIFO_NAME + util.lex(i);
+		m_fifoName = m_rootPath + ACE_FIFO_NAME + util.lex(index);
 		m_fifoNum  = index;
 		cout << "FIFO_NAME: " << m_fifoName << endl;
 		int result = mkfifo(m_fifoName.c_str(), S_IRUSR | S_IWUSR);
-		bool mkfifoFailed = result < 0;
+		mkfifoFailed = result < 0;
 		++index;
 	} while(mkfifoFailed);
 	m_fifoThread = new std::thread([this](){this->checkFifo();});
 }
 void Application::checkFifo() {
+	const int chBufferSize = 5000;
+	auto chBuffer = new char[chBufferSize];
 	while(true) {
-		m_fifo = fopen(m_fifoName.c_str(), "r");
+		FILE* fifo = fopen(m_fifoName.c_str(), "r");
 		if(m_stopFifoThread) {
 			break;
 		}
-		int numread = fread(m_chBuffer, 1, m_chBufferSize, m_fifo);
-		fclose(m_fifo);
+		int numread = fread(chBuffer, 1, chBufferSize, fifo);
+		fclose(fifo);
 		if(numread <= 0) return;
-		m_chBuffer[numread] = '\0';
-		m_textForTerminal += std::string(m_chBuffer);
+		chBuffer[numread] = '\0';
+		m_textForTerminal += std::string(chBuffer);
 	}
+	delete[] chBuffer; chBuffer = nullptr;
 }
 bool Application::timeCallback() {
 	if(!m_textForTerminal.empty()) {
@@ -268,7 +275,7 @@ bool Application::timeCallback() {
 	return true;
 }
 void Application::updateTabLanguage(std::shared_ptr<Tab>& tab) {
-	if(tab->name.find(m_config["makefileName"]) == std::string::npos) {
+	if(tab->name.find(constants.makefileName) == std::string::npos) {
 		tab->view.setLanguageByFile(tab->name);
 	} else {
 		tab->view.setLanguageById("makefile");
@@ -389,21 +396,21 @@ void Application::buildProject() {
 		m_textForTerminal = "Error: File '" + tab->name + "' not saved.";
 		return;
 	}
-	auto makefileName = m_config["makefileName"];
+	auto makefileName = constants.makefileName;
 	auto path = tab->path;
 	path.erase(path.length()-1);
 	while(true) {
 		auto makefilePath = path+"/"+makefileName;
 		if(util.fileExists(makefilePath)) {
-			util.system("make -C " + path + " -f " + makefileName +" 2>&1 | "+m_config["aceExec"] +
+			util.system("make -C " + path + " -f " + makefileName + " 2>&1 | " + m_config["aceExec"] +
 				" --self" + util.lex(m_fifoNum) + " &");
 			break;
 		}
 		if(path.length() <= 0) {
-			makefilePath = tab->path + m_config["makefileName"];
+			makefilePath = tab->path + makefileName;
 			std::string makefileText = String(m_makefileTemplate).replaceAll("__SRCDIR__", util.getDirOfPath(makefilePath,false));
 			Textfile::saveFile(makefileText, makefilePath);
-			addTab(m_config["makefileName"], makefileText, false, tab->path);
+			addTab(makefileName, makefileText, false, tab->path);
 			break;
 		}
 		path = util.getDirOfPath(path, false);
@@ -420,9 +427,10 @@ void Application::runProject() {
 	std::string path = tab->path, makefilePath;
 	path.erase(path.length()-1);
 	while(true) {
-		makefilePath = path+"/"+m_config["makefileName"];
+		makefilePath = path + "/" + constants.makefileName;
 		if(util.fileExists(makefilePath)) {
-			std::string cmd = "make -C " + path + " run 2>&1 | " + m_config["aceExec"];
+			std::string cmd = "make -C " + path + " -f " + constants.makefileName +
+				" run 2>&1 | " + m_config["aceExec"];
 			cmd += " --self" + util.lex(m_fifoNum) + " &";
 			cout << "exec: " << cmd << endl;
 			util.system(cmd);
@@ -445,16 +453,16 @@ void Application::openMakefile() {
 	std::string path = tab->path, makefilePath;
 	path.erase(path.length()-1);
 	while(true) {
-		makefilePath = path+"/"+m_config["makefileName"];
+		makefilePath = path + "/" + constants.makefileName;
 		if(util.fileExists(makefilePath)) {
-			addTab(m_config["makefileName"], Textfile::readFile(makefilePath), false, tab->path);
+			addTab(constants.makefileName, Textfile::readFile(makefilePath), false, tab->path);
 			break;
 		}
 		if(path.length() <= 0) {
-			makefilePath = tab->path + m_config["makefileName"];
+			makefilePath = tab->path + constants.makefileName;
 			std::string makefileText = String(m_makefileTemplate).replaceAll("__SRCDIR__", util.getDirOfPath(makefilePath,false));
 			Textfile::saveFile(makefileText, makefilePath);
-			addTab(m_config["makefileName"], makefileText, false, tab->path);
+			addTab(constants.makefileName, makefileText, false, tab->path);
 			break;
 		}
 		path = util.getDirOfPath(path, false);
@@ -509,13 +517,13 @@ void Application::findReplace() {
 void Application::showHelp() {
 	cout << "HELP" << endl;
 	Gtk::MessageDialog dialog(*this, "Ace Help", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(constants.DefaultHelp);
+	dialog.set_secondary_text(constants.defaultHelp);
 	dialog.run();
 }
 void Application::showAbout() {
 	cout << "ABOUT" << endl;
 	Gtk::MessageDialog dialog(*this, "Ace About", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(constants.DefaultAbout);
+	dialog.set_secondary_text(constants.defaultAbout);
 	dialog.run();
 }
 
