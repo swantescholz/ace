@@ -284,7 +284,9 @@ void Application::saveFile() {
 		saveAsFile();
 		return;
 	}
-	Textfile::saveFile(tab->view.getText(), tab->path + tab->name);
+	if (tab->view.isModified(true)) {
+		Textfile::saveFile(tab->view.getText(), tab->path + tab->name);
+	}
 	m_notebook.set_tab_label_text(tab->window, tab->name); //without *
 }
 void Application::saveAsFile() {
@@ -379,7 +381,7 @@ void Application::runProject() {
 		makefilePath = path+"/"+m_config["makefileName"];
 		if(util.fileExists(makefilePath)) {
 			std::string cmd = "make -C " + path + " run 2>&1 | " + m_config["aceExec"];
-			cmd += " --self" + util.lex(m_fifoNum);
+			cmd += " --self" + util.lex(m_fifoNum) + " &";
 			cout << "exec: " << cmd << endl;
 			util.system(cmd);
 			break;

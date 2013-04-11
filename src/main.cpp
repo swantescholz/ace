@@ -15,6 +15,8 @@ int main( int argc, char **argv) {
 	return 0;
 }
 
+//typedef T& ref;
+typedef const shared_ptr<AssertionException>& assref;
 
 void init(int argc, char **argv) {
 	if(argc > 1) {
@@ -33,9 +35,9 @@ void init(int argc, char **argv) {
 	try {
 		main_obj.run(*win);
 	}
-	catch (const ace::Exception& ex) {
+	catch (assref ex) {
 		std::cout << "BLUB" << std::endl;
-		std::cout << "An error ocurred:\n" << ex.toString() << std::endl;
+		std::cout << "An error ocurred:\n" << ex->toString() << std::endl;
 	}
 	delete win; win = nullptr;
 }//*/

@@ -9,7 +9,7 @@
 #include <fstream>
 
 #include "Timer.h"
-#include "Exception.h"
+#include "Assert.h"
 #include "String.h"
 
 namespace ace {
@@ -23,7 +23,7 @@ void Util::system(const std::string& str) {
 		std::system(str.c_str());
 	}
 	else {
-		ace_except("no system call shell available", "system");
+		assertFail("no system call shell available");
 	}
 }
 

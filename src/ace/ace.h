@@ -3,7 +3,7 @@
 
 #include "Application.h"
 #include "Timer.h"
-#include "Exception.h"
+#include "Assert.h"
 #include "Util.h"
 #include "Common.h"
 #include "String.h"

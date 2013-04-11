@@ -1,7 +1,7 @@
 #include "Textfile.h"
-#include "Exception.h"
 #include "Common.h"
 #include "Util.h"
+#include "Assert.h"
 #include <fstream>
 #include <stack>
 #include <iostream>
@@ -56,7 +56,7 @@ void Textfile::read(bool append) {
 	std::ifstream fin;
 	fin.open(m_sName.c_str(), std::ios_base::in);
 	if (!fin) {
-		ace_except("file '" + m_sName + "' does not exist", "readFile");
+		assertFail("file '" + m_sName + "' does not exist");
 	}
 	fin.seekg(0, std::ios_base::end);
 	const unsigned long numBytes = fin.tellg();
@@ -86,7 +86,7 @@ void Textfile::save(bool append) {
 		fout.open(m_sName.c_str(), std::ios_base::out | std::ios_base::app   );
 	}
 	if (!fout) {
-		ace_except("file '" + m_sName + "' can not be opened/created", "saveFile");
+		assertFail("file '" + m_sName + "' can not be opened/created");
 	}
 	std::list<std::string>::iterator it1 = m_lsLines.begin();
 	if (it1 == m_lsLines.end()) return;
@@ -145,7 +145,7 @@ std::string Textfile::getLine (int index) {
 	static int s_iLine = 0;
 	if (index >= 0) s_iLine = index;
 	if (s_iLine >= m_iNumLines) {
-		ace_except("index (" + util.lex(s_iLine) + ") out of bounds", "getLine");
+		assertFail("index (" + util.lex(s_iLine) + ") out of bounds");
 	}
 	std::string sReturnLine;
 	index = 0;
@@ -164,7 +164,7 @@ void Textfile::setLine (const std::string& psNewLine, int index) {
 	static int s_iLine = 0;
 	if (index >= 0) s_iLine = index;
 	if (s_iLine >= m_iNumLines) {
-		ace_except("index (" + util.lex(s_iLine) + ") out of bounds", "setLine");
+		assertFail("index (" + util.lex(s_iLine) + ") out of bounds");
 	}
 	index = 0;
 	for (std::list<std::string>::iterator it1 = m_lsLines.begin(); it1 != m_lsLines.end(); it1++) {
