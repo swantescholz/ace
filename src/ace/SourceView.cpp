@@ -77,12 +77,11 @@ void SourceView::beginUndoableAction() {
 void SourceView::endUndoableAction() {
 	gtk_source_buffer_end_not_undoable_action(buffer);
 }
-bool SourceView::isModified(bool setFalse) {
-	bool b = gtk_text_buffer_get_modified(GTK_TEXT_BUFFER(buffer));
-	if(b && setFalse) {
-		gtk_text_buffer_set_modified(GTK_TEXT_BUFFER(buffer), false);
-	}
-	return b;
+bool SourceView::isModified() {
+	return gtk_text_buffer_get_modified(GTK_TEXT_BUFFER(buffer));
+}
+void SourceView::setModified(bool newValue) {
+	gtk_text_buffer_set_modified(GTK_TEXT_BUFFER(buffer), newValue);
 }
 void SourceView::closeBrace() {
 	GtkTextBuffer* tbuf = GTK_TEXT_BUFFER(buffer);

@@ -34,7 +34,8 @@ public:
 	void pasteClipboard();
 	void beginUndoableAction();
 	void endUndoableAction();
-	bool isModified(bool setFalse = true);
+	bool isModified();
+	void setModified(bool newValue);
 	void closeBrace(); //unindent when }
 	void update(); //check for autoindent after return/enter pressed
 	void autoIndentSelection();

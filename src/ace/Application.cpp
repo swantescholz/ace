@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "Util.h"
 #include "String.h"
+#include "Assert.h"
+#include "Constants.h"
 #include <unistd.h>
 
 using namespace Gtk;
@@ -9,46 +11,67 @@ namespace ace {
 
 #define mymemfun(X) sigc::mem_fun(*this, &Application::X)
 
+
+template<class... T>
+Glib::RefPtr<Action> actCreate(T... args) {
+	return Action::create(args...);
+}
+
 Application::Application(std::string aceExecName) {
 	m_rootPath = util.getDirOfPath(aceExecName, true);
 	m_config["aceExec"] = aceExecName;
 	
-	m_stopFifoThread = false;
 	m_chBufferSize = 50000;
 	m_chBuffer = new char[m_chBufferSize];
 	
-	m_uiManager = UIManager::create();
 	init();
+	initGui();
 	
+}
+
+void Application::initGui() {
 	m_actionGroup = ActionGroup::create();
-	m_actionGroup->add( Action::create("MenuFile"       , "_File"   ));
-	m_actionGroup->add( Action::create("MenuEdit"       , "_Edit"   ));
-	m_actionGroup->add( Action::create("MenuView"       , "_View"   ));
-	m_actionGroup->add( Action::create("MenuProject"    , "_Project"));
-	m_actionGroup->add( Action::create("MenuHelp"       , "_Help"   ));
-	m_actionGroup->add( Action::create("FileNew"        , Stock::NEW    ), mymemfun(actNewFile));
-	m_actionGroup->add( Action::create("FileOpen"       , Stock::OPEN   ), sigc::mem_fun(*this, &Application::actOpen   ));
-	m_actionGroup->add( Action::create("FileSave"       , Stock::SAVE   ), sigc::mem_fun(*this, &Application::actSave   ));
-	m_actionGroup->add( Action::create("FileSaveAs"     , Stock::SAVE_AS), AccelKey("<control><shift>s"), sigc::mem_fun(*this, &Application::actSaveAs ));
-	m_actionGroup->add( Action::create("FileClose"      , Stock::CLOSE  ), sigc::mem_fun(*this, &Application::actClose  ));
-	m_actionGroup->add( Action::create("FileQuit"       , Stock::QUIT   ), sigc::mem_fun(*this, &Application::actQuit   ));
-	m_actionGroup->add( Action::create("EditUndo"       , Stock::UNDO   ), AccelKey("<control>z"), sigc::mem_fun(*this, &Application::actUndo   ));
-	m_actionGroup->add( Action::create("EditRedo"       , Stock::REDO   ), AccelKey("<control>y"), sigc::mem_fun(*this, &Application::actRedo   ));
-	m_actionGroup->add( Action::create("EditCut"        , Stock::CUT    ), sigc::mem_fun(*this, &Application::actCut    ));
-	m_actionGroup->add( Action::create("EditCopy"       , Stock::COPY   ), sigc::mem_fun(*this, &Application::actCopy   ));
-	m_actionGroup->add( Action::create("EditPaste"      , Stock::PASTE  ), sigc::mem_fun(*this, &Application::actPaste  ));
-	m_actionGroup->add( Action::create("EditCloseBrace" ,"Close Brace"  ), AccelKey("braceright"), sigc::mem_fun(*this, &Application::actCloseBrace  ));
-	m_actionGroup->add( Action::create("EditAutoIndent" , Stock::INDENT, "Auto Indent" ), AccelKey("<control>i"), sigc::mem_fun(*this, &Application::actAutoIndent  ));
-	m_actionGroup->add( Action::create("EditFindReplace", Stock::FIND_AND_REPLACE), sigc::mem_fun(*this, &Application::actFindReplace ));
-	m_actionGroup->add( Action::create("EditReloadConfigFile", Stock::PREFERENCES, "Reload Config File"), AccelKey("<control><shift>r"), sigc::mem_fun(*this, &Application::actReloadConfigFile ));
-	m_actionGroup->add( ToggleAction::create("ViewMaximize", "Maximize", "Maximize Window", m_maximized ), AccelKey("F12"), sigc::mem_fun(*this, &Application::actMaximize  ));
-	m_actionGroup->add( ToggleAction::create("ViewFullscreen", Stock::FULLSCREEN,"",""    , m_fullscreen), AccelKey("F11"), sigc::mem_fun(*this, &Application::actFullscreen));
-	m_actionGroup->add( Action::create_with_icon_name("ProjectBuild", "build", "Build", "Build current project"), AccelKey("F5"), sigc::mem_fun(*this, &Application::actBuild  ));
-	m_actionGroup->add( Action::create_with_icon_name("ProjectRun"  , "run"  , "Run"  , "Run current project"  ), AccelKey("F6"), sigc::mem_fun(*this, &Application::actRun    ));
-	m_actionGroup->add( Action::create("ProjectEditMakefile", "_Edit Makefile"), AccelKey("F8"), sigc::mem_fun(*this, &Application::actOpenMakefile ));
-	m_actionGroup->add( Action::create("HelpHelp"    , Stock::HELP   ), AccelKey("F1"), sigc::mem_fun(*this, &Application::actHelp   ));
-	m_actionGroup->add( Action::create("HelpAbout"   , Stock::ABOUT  ), AccelKey("F9"), sigc::mem_fun(*this, &Application::actAbout  ));
-	Glib::signal_timeout().connect(sigc::mem_fun(*this, &Application::timeCallback), 10 );
+	auto adda = [&](Glib::RefPtr<Action> action) {
+		m_actionGroup->add( action);
+	};
+	auto addb = [&](Glib::RefPtr<Action> action, decltype(mymemfun(newFile)) fun) {
+		m_actionGroup->add( action, fun);
+	};
+	auto addc = [&](Glib::RefPtr<Action> action, decltype(mymemfun(newFile)) fun, string key) {
+		m_actionGroup->add( action, AccelKey(key), fun);
+	};
+	adda(actCreate("MenuFile"       , "_File"   ));
+	adda(actCreate("MenuEdit"       , "_Edit"   ));
+	adda(actCreate("MenuView"       , "_View"   ));
+	adda(actCreate("MenuProject"    , "_Project"));
+	adda(actCreate("MenuHelp"       , "_Help"   ));
+	addb(actCreate("FileNew"        , Stock::NEW    ), mymemfun(newFile));
+	addb(actCreate("FileOpen"       , Stock::OPEN   ), mymemfun(openFile   ));
+	addb(actCreate("FileSave"       , Stock::SAVE   ), mymemfun(saveFile   ));
+	addc(actCreate("FileSaveAs"     , Stock::SAVE_AS), mymemfun(saveAsFile ), "<control><shift>s");
+	addb(actCreate("FileClose"      , Stock::CLOSE  ), mymemfun(closeFile  ));
+	addb(actCreate("FileQuit"       , Stock::QUIT   ), mymemfun(quit   ));
+	addc(actCreate("EditUndo"       , Stock::UNDO   ), mymemfun(undo   ), "<control>z");
+	addc(actCreate("EditRedo"       , Stock::REDO   ), mymemfun(redo   ), "<control>y");
+	addb(actCreate("EditCut"        , Stock::CUT    ), mymemfun(cut    ));
+	addb(actCreate("EditCopy"       , Stock::COPY   ), mymemfun(copy   ));
+	addb(actCreate("EditPaste"      , Stock::PASTE  ), mymemfun(paste  ));
+	addc(actCreate("EditCloseBrace" ,"Close Brace"  ), mymemfun(closeBrace), "braceright");
+	addc(actCreate("EditAutoIndent" , Stock::INDENT, "Auto Indent" ), mymemfun(autoIndent), "<control>i");
+	addb(actCreate("EditFindReplace", Stock::FIND_AND_REPLACE), mymemfun(findReplace ));
+	addc(actCreate("EditReloadConfigFile", Stock::PREFERENCES, "Reload Config File"), mymemfun(loadDefaultConfigFile), "<control><shift>r");
+	auto maximizeAction = ToggleAction::create("ViewMaximize", "Maximize", "Maximize Window", m_maximized ); 
+	auto fullscreenAction = ToggleAction::create("ViewFullscreen", Stock::FULLSCREEN,"",""    , m_fullscreen );
+	auto buildAction = Action::create_with_icon_name("ProjectBuild", "build", "Build", "Build current project" );
+	auto runAction = Action::create_with_icon_name("ProjectRun"  , "run"  , "Run"  , "Run current project"  );
+	addc( maximizeAction  , mymemfun(actMaximize  ), "F12");
+	addc( fullscreenAction, mymemfun(actFullscreen), "F11");
+	addc( buildAction     , mymemfun(buildProject  ), "F5");
+	addc( runAction       , mymemfun(runProject    ), "F6");
+	addc(actCreate("ProjectEditMakefile", "_Edit Makefile"), mymemfun(openMakefile ), "F8");
+	addc(actCreate("HelpHelp"    , Stock::HELP   ), mymemfun(showHelp) , "F1");
+	addc(actCreate("HelpAbout"   , Stock::ABOUT  ), mymemfun(showAbout), "F9");
+	Glib::signal_timeout().connect(mymemfun(timeCallback), 10 );
 	
 	m_uiManager->insert_action_group(m_actionGroup);
 	add_accel_group(m_uiManager->get_accel_group());
@@ -64,6 +87,7 @@ Application::Application(std::string aceExecName) {
 	m_terminal.view.setEditable(false);
 	m_terminal.view.addToContainer(m_terminal.window);
 	m_notebook.set_scrollable(true);
+	m_notebook.signal_switch_page().connect(mymemfun(actSwitchPage));
 	m_vpaned.add1(m_notebook);
 	m_vpaned.add2(m_terminal.window);
 	m_vbox.pack_start(m_vpaned);
@@ -83,26 +107,33 @@ Application::~Application() {
 	m_fifoThread->join();
 	fclose(fifo);
 	util.removeFile(m_fifoName);
-	delete m_fifoThread; m_chBuffer = nullptr;
+	delete m_fifoThread; m_fifoThread = nullptr;
 }
 void Application::init() {
+	m_uiManager = UIManager::create();
 	openFifo();
-	loadConfigFile();
+	loadDefaultConfigFile();
 	loadIcons("res/icons/", ".png");
 	std::vector<std::string> stabs;
 	Textfile::readFile(m_config["lastOpenedTabsPath"], stabs);
 	for(auto s : stabs) {
-		if(!s.empty())
-			addTab(util.getFileOfPath(s),Textfile::readFile(s),false,util.getDirOfPath(s));
+		if(!s.empty()) {
+			try {
+				auto text = Textfile::readFile(s);
+				addTab(util.getFileOfPath(s), text, false, util.getDirOfPath(s));
+			} catch (shared_ptr<AssertionException> ex) {
+				cout << ex->toString() << endl;
+			}
+		}
 	}
 }
 void Application::loadConfigFile(const std::string& name) {
+	cout << "(RE)LOAD CONFIG FILE" << endl;
 	if(!util.fileExists(name)) {
-		Textfile::saveFile(s_sDefaultConfig, name);
+		Textfile::saveFile(constants.DefaultConfig, name);
 	}
-	Textfile tf;
-	tf.readAt(name);
-	util.mapConfigFile(m_config, tf.getText(), true, true);
+	auto text = Textfile::readFile(name);
+	util.mapConfigFile(m_config, text, true, true);
 	m_maximized  = (util.lex<int>(m_config["maximized" ]) != 0);
 	m_fullscreen = (util.lex<int>(m_config["fullscreen"]) != 0);
 	set_title(m_config["programName"]);
@@ -117,14 +148,33 @@ void Application::loadConfigFile(const std::string& name) {
 		Textfile::saveFile(std::string(""), m_config["lastOpenedTabsPath"]);
 	}
 	if(true || !util.fileExists(m_config["uiPath"])) {
-		Textfile::saveFile(s_sDefaultUi, m_config["uiPath"]);
+		Textfile::saveFile(constants.DefaultUi, m_config["uiPath"]);
 	}
 	if(true || !util.fileExists(m_config["makefileTemplatePath"])) {
-		Textfile::saveFile(s_sDefaultMakefile, m_config["makefileTemplatePath"]);
+		Textfile::saveFile(constants.DefaultMakefile, m_config["makefileTemplatePath"]);
 	}
 	m_lastAccessedDir = Textfile::readFile(m_config["lastOpenedPathPath"]);
 	m_uiManager->add_ui_from_string(Textfile::readFile(m_config["uiPath"]));
 	m_makefileTemplate = Textfile::readFile(m_config["makefileTemplatePath"]);
+}
+
+int getSmartHomeEndModeForIndex(int index) {
+	switch (index) {
+		case 1: return (int)GTK_SOURCE_SMART_HOME_END_DISABLED;
+		case 2: return (int)GTK_SOURCE_SMART_HOME_END_BEFORE;
+		case 3: return (int)GTK_SOURCE_SMART_HOME_END_AFTER;
+		case 4: return (int)GTK_SOURCE_SMART_HOME_END_ALWAYS;
+	}
+	return GTK_SOURCE_SMART_HOME_END_BEFORE;
+}
+int getWrapModeForIndex(int index) {
+	switch (index) {
+		case 1: return (int)GTK_WRAP_NONE;
+		case 2: return (int)GTK_WRAP_CHAR;
+		case 3: return (int)GTK_WRAP_WORD;
+		case 4: return (int)GTK_WRAP_WORD_CHAR;
+	}
+	return (int)GTK_WRAP_WORD_CHAR;
 }
 void Application::loadSourceViewOptions(SourceView& view) {
 	view.setHighlightMatchingBrackets(util.lex<int>(m_config["highlightMatchingBrackets"])==1);
@@ -138,25 +188,10 @@ void Application::loadSourceViewOptions(SourceView& view) {
 	view.setShowLineNumbers     (util.lex<int>(m_config["showLineNumbers"])==1);
 	view.setRightMarginPosition (util.lex<int>(m_config["rightMarginPosition"]));
 	view.setShowRightMargin     (util.lex<int>(m_config["showRightMargin"])==1);
-	int i = util.lex<int>(m_config["smartHomeEnd"]);
-	int c = 0;
-	switch (i) {
-		case 1 : c = (int)GTK_SOURCE_SMART_HOME_END_DISABLED; break;
-		case 2 : c = (int)GTK_SOURCE_SMART_HOME_END_BEFORE; break;
-		case 3 : c = (int)GTK_SOURCE_SMART_HOME_END_AFTER; break;
-		case 4 : c = (int)GTK_SOURCE_SMART_HOME_END_ALWAYS; break;
-		default: c = (int)GTK_SOURCE_SMART_HOME_END_BEFORE; break;
-	}
-	view.setSmartHomeEnd(c);
-	i = util.lex<int>(m_config["wrapMode"]);
-	switch (i) {
-		case 1 : c = (int)GTK_WRAP_NONE; break;
-		case 2 : c = (int)GTK_WRAP_CHAR; break;
-		case 3 : c = (int)GTK_WRAP_WORD; break;
-		case 4 : c = (int)GTK_WRAP_WORD_CHAR; break;
-		default: c = (int)GTK_WRAP_WORD_CHAR; break;
-	}
-	view.setWrapMode(c);
+	int smartHomeEndIndex = util.lex<int>(m_config["smartHomeEnd"]);
+	int wrapIndex = util.lex<int>(m_config["wrapMode"]);
+	view.setSmartHomeEnd(getSmartHomeEndModeForIndex(smartHomeEndIndex));
+	view.setWrapMode(getWrapModeForIndex(wrapIndex));
 	view.setFont(m_config["font"]);
 }
 void Application::loadIcons(const std::string& start, const std::string& end) {
@@ -175,7 +210,7 @@ void Application::addTab(const std::string& tabname, const std::string& text, bo
 	tab->view.beginUndoableAction();
 	tab->view.setText(text);
 	tab->view.endUndoableAction();
-	tab->view.isModified(true);
+	tab->view.setModified(false);
 	updateTabLanguage(tab);
 	tab->view.addToContainer(tab->window);
 	m_notebook.append_page(tab->window, tab->name + ((isnew)?"*":""));
@@ -191,15 +226,15 @@ std::shared_ptr<Tab> Application::getCurrentTab() {
 	return *it;
 }
 void Application::openFifo() {
-	int result = 0;
-	int i = 1;
+	int index = 1;
 	do {
 		m_fifoName = m_rootPath + ACE_FIFO_NAME + util.lex(i);
-		m_fifoNum  = i;
+		m_fifoNum  = index;
 		cout << "FIFO_NAME: " << m_fifoName << endl;
-		result = mkfifo(m_fifoName.c_str(), S_IRUSR | S_IWUSR);
-		++i;
-	} while(result < 0);
+		int result = mkfifo(m_fifoName.c_str(), S_IRUSR | S_IWUSR);
+		bool mkfifoFailed = result < 0;
+		++index;
+	} while(mkfifoFailed);
 	m_fifoThread = new std::thread([this](){this->checkFifo();});
 }
 void Application::checkFifo() {
@@ -224,7 +259,7 @@ bool Application::timeCallback() {
 		vadj->set_value(newValue);	
 	}
 	auto tab = getCurrentTab();
-	if(tab->view.isModified(true)) {
+	if(tab->view.isModified()) {
 		if(std::string(m_notebook.get_tab_label_text(tab->window)).find("*") ==  std::string::npos) {
 			m_notebook.set_tab_label_text(tab->window, tab->name + "*"); //with *
 		}
@@ -250,7 +285,13 @@ void Application::updateLastOpened() {
 	if(!stabs.empty()) stabs.erase(stabs.length() - 1);
 	Textfile::saveFile(stabs, m_config["lastOpenedTabsPath"]);
 }
-//------------------------------------------------
+//================================================
+void Application::actSwitchPage(Widget* page, guint page_num) {
+	auto tab = getCurrentTab();
+	auto title = m_notebook.get_tab_label_text(tab->window);
+	title += " (" + tab->path + ") - Ace";
+	set_title(title);
+}
 void Application::newFile() {
 	cout << "NEW FILE" << endl;
 	addTab("NewFile", "", true);
@@ -284,8 +325,9 @@ void Application::saveFile() {
 		saveAsFile();
 		return;
 	}
-	if (tab->view.isModified(true)) {
+	if (tab->view.isModified()) {
 		Textfile::saveFile(tab->view.getText(), tab->path + tab->name);
+		tab->view.setModified(false);
 	}
 	m_notebook.set_tab_label_text(tab->window, tab->name); //without *
 }
@@ -467,143 +509,15 @@ void Application::findReplace() {
 void Application::showHelp() {
 	cout << "HELP" << endl;
 	Gtk::MessageDialog dialog(*this, "Ace Help", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(s_sDefaultHelp);
+	dialog.set_secondary_text(constants.DefaultHelp);
 	dialog.run();
 }
 void Application::showAbout() {
 	cout << "ABOUT" << endl;
 	Gtk::MessageDialog dialog(*this, "Ace About", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_CLOSE);
-	dialog.set_secondary_text(s_sDefaultAbout);
+	dialog.set_secondary_text(constants.DefaultAbout);
 	dialog.run();
 }
 
-//---------------------------------------------------
-const std::string Application::s_sDefaultAbout =
-	R"(Default About)";
-const std::string Application::s_sDefaultHelp =
-	R"(Default Help)";
-const std::string Application::s_sDefaultMakefile =
-	R"(#Ace standard makefile
-#WIN or LIN
-OS   = LIN
-NAME = test
-SRCDIR = __SRCDIR__
-
-C_LIN   = g++
-ARG_LIN = 
-INC_LIN = 
-LIB_LIN = 
-END_LIN =
-
-C_WIN   = i586-mingw32msvc-g++
-ARG_WIN = 
-INC_WIN = 
-LIB_WIN = 
-END_WIN = .exe
-
-SRC=$(wildcard $(SRCDIR)/*.cpp)
-#print:
-#	@echo SRC = $(SRC)
-OBJ=$(SRC:.cpp=.o)
-
-CC  = $(C_$(OS))
-ARG = -std=c++0x $(ARG_$(OS))
-INC = $(INC_$(OS))
-LIB = $(LIB_$(OS))
-END = $(END_$(OS))
-
-all: $(SRCDIR)/$(NAME)$(END)
-
-$(SRCDIR)/$(NAME)$(END): $(OBJ)
-	$(CC) -o $@ $(ARG) $(INC) $(OBJ) $(LIB) 
-
-%.o: %.cpp
-	$(CC) -o $@ $(ARG) $(INC) -c $<
-
-clean:
-	rm -f $(SRCDIR)/*.o)";
-const std::string Application::s_sDefaultUi =
-	R"(<ui>
-	<menubar name='MenuBar'>
-		<menu action='MenuFile'>
-			<menuitem action='FileNew'/>
-			<menuitem action='FileOpen'/>
-			<menuitem action='FileSave'/>
-			<menuitem action='FileSaveAs'/>
-			<menuitem action='FileClose'/>
-			<separator/>
-			<menuitem action='FileQuit'/>
-		</menu>
-		<menu action='MenuEdit'>
-			<menuitem action='EditUndo'/>
-			<menuitem action='EditRedo'/>
-			<menuitem action='EditCut'/>
-			<menuitem action='EditCopy'/>
-			<menuitem action='EditPaste'/>
-			<menuitem action='EditCloseBrace'/>
-			<menuitem action='EditAutoIndent'/>
-			<menuitem action='EditFindReplace'/>
-			<menuitem action='EditReloadConfigFile'/>
-		</menu>
-		<menu action='MenuProject'>
-			<menuitem action='ProjectBuild'/>
-			<menuitem action='ProjectRun'/>
-			<menuitem action='ProjectEditMakefile'/>
-		</menu>
-		<menu action='MenuView'>
-			<menuitem action='ViewMaximize'/>
-			<menuitem action='ViewFullscreen'/>
-		</menu>
-		<menu action='MenuHelp'>
-			<menuitem action='HelpHelp'/>
-			<separator/>
-			<menuitem action='HelpAbout'/>
-		</menu>
-	</menubar>
-	<toolbar name='ToolBar'>
-		<toolitem action='FileQuit'/>
-		<toolitem action='FileNew'/>
-		<toolitem action='FileOpen'/>
-		<toolitem action='FileSave'/>
-		<toolitem action='EditAutoIndent'/>
-		<toolitem action='EditFindReplace'/>
-		<toolitem action='EditReloadConfigFile'/>
-		<toolitem action='ProjectBuild'/>
-		<toolitem action='ProjectRun'/>
-		<toolitem action='HelpAbout'/>
-	</toolbar>
-</ui>)";
-const std::string Application::s_sDefaultConfig =
-	R"(programName=Ace Version 0.1
-aceExec='/home/swante/workspace/Ace/Ace'
-iconPath=res/icons/icon.png
-width=600
-height=600
-maximized=0
-fullscreen=0
-vpanedSeperatorPosition=500
-lastOpenedPathPath=config/lastOpenedPath.txt
-lastOpenedTabsPath=config/lastOpenedTabs.txt
-uiPath=config/ui.xml
-makefileName=Makefile
-makefileTemplatePath=config/MakefileTemplate
-highlightMatchingBrackets=1
-maxUndoLevels=30
-smartIndent=1
-indentOnTab=1
-indentString=	
-tabWidth=4
-tabsAreSpaces=0
-highlightCurrentLine=1
-showLineNumbers=1
-rightMarginPosition=90
-showRightMargin=1
-smartHomeEnd=2
-wrapMode=4
-font=monospace
-)";
-
-//where-am-i = $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
-//SRCDIR := $(call where-am-i)
 
 }

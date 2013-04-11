@@ -15,15 +15,12 @@ int main( int argc, char **argv) {
 	return 0;
 }
 
-//typedef T& ref;
-typedef const shared_ptr<AssertionException>& assref;
-
 void init(int argc, char **argv) {
 	if(argc > 1) {
 		String arg1 = std::string(argv[1]);
 		if(arg1.startsWith("--self")) {
 			int num = util.lex<int>(arg1.substr(6));
-			selfCall(num);
+			ipc.selfCall(num);
 			return;
 		}
 	}
@@ -35,9 +32,8 @@ void init(int argc, char **argv) {
 	try {
 		main_obj.run(*win);
 	}
-	catch (assref ex) {
-		std::cout << "BLUB" << std::endl;
-		std::cout << "An error ocurred:\n" << ex->toString() << std::endl;
+	catch (shared_ptr<AssertionException> ex) {
+		std::cout << ex->toString() << std::endl;
 	}
 	delete win; win = nullptr;
 }//*/

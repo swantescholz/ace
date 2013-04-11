@@ -9,28 +9,42 @@
 #include <cstdio>
 #include <errno.h>
 #include <ctype.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
 namespace ace {
 
-void selfCall(int num) {
+void Ipc::runThread(string fifoName) {
+	while (!stopThread) {
+		this_thread::sleep_for(chrono::milliseconds(100));
+		mtx.lock();
+		if (!input.empty()) {
+			FILE* fifo = fopen(fifoName.c_str(), "w");
+			fwrite(input.c_str(), 1, input.length(), fifo);
+			input.clear();
+			fclose(fifo);
+		}
+		mtx.unlock();
+	}
+}
+
+void Ipc::selfCall(int num) {
 	auto fifoName = (ACE_FIFO_NAME + util.lex(num)).c_str();
-		
-	int max = 5000;
-	char *ch = new char[max];
+	thread t([&]{runThread(fifoName);});
 	for(int i = 0;; ++i) {
-		cin.getline(ch, max);
+		char c;
+		cin.get(c);
 		if(cin.eof()) {
 			break;
 		}
-		auto line = std::string(ch) + "\n";
-		cout << i << "\t: " << line << endl;
-		FILE* fifo = fopen((ACE_FIFO_NAME + util.lex(num)).c_str(), "w");
-		fwrite(line.c_str(), 1, line.length(), fifo);
-		fclose(fifo);
+		mtx.lock();
+		input += c;
+		mtx.unlock();		
 	}
-	delete[] ch; ch = nullptr;
+	stopThread = true;
+	t.join();
 }
 
 }

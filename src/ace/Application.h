@@ -30,30 +30,10 @@ public:
 	Application(std::string aceExecName);
 	~Application();
 public:
-	void actNewFile     () {newFile    ();}
-	void actOpen        () {openFile   ();}
-	void actSave        () {saveFile   ();}
-	void actSaveAs      () {saveAsFile ();}
-	void actClose       () {closeFile  ();}
-	void actQuit        () {quit       ();}
-	void actUndo        () {undo       ();}
-	void actRedo        () {redo       ();}
-	void actCut         () {cut        ();}
-	void actCopy        () {copy       ();}
-	void actPaste       () {paste      ();}
-	void actCloseBrace  () {closeBrace ();}
-	void actNewline     () {addNewline ();}
-	void actAutoIndent  () {autoIndent ();}
-	void actFindReplace () {findReplace();}
+
 	void actFullscreen  () {if(m_fullscreen) unfullscreen(); else fullscreen(); m_fullscreen = !m_fullscreen;}
 	void actMaximize    () {if(m_maximized ) unmaximize  (); else maximize  (); m_maximized  = !m_maximized;}
-	void actHelp        () {showHelp  ();}
-	void actAbout       () {showAbout ();}
-	void actBuild       () {buildProject();}
-	void actRun         () {runProject();}
-	void actOpenMakefile() {openMakefile();}
-	void actReloadConfigFile() {std::cout << "RELOAD CONFIG FILE" << std::endl; loadConfigFile();}
-private:
+	void actSwitchPage(Widget* page, guint page_num);
 	void newFile();
 	void openFile();
 	void saveFile();
@@ -77,7 +57,8 @@ private:
 private:
 	Glib::RefPtr<Gtk::TextBuffer> createTextBuffer();
 	void init();
-	void loadConfigFile() {
+	void initGui();
+	void loadDefaultConfigFile() {
 		loadConfigFile(m_rootPath + "config/config.txt");
 	}
 	void loadConfigFile(const std::string& name);
@@ -109,14 +90,13 @@ private:
 	FILE* m_fifo;
 	char* m_chBuffer;
 	int m_chBufferSize;
-	bool m_stopFifoThread;
+	bool m_stopFifoThread = false;
 	std::thread *m_fifoThread;
 	std::map<std::string, std::string> m_config;
 	bool m_maximized, m_fullscreen;
 	std::string m_lastAccessedDir;
 	std::string m_makefileTemplate;
 	
-	static const std::string s_sDefaultAbout, s_sDefaultHelp, s_sDefaultMakefile, s_sDefaultUi, s_sDefaultConfig;
 };
 
 }

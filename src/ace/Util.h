@@ -12,8 +12,6 @@ namespace ace {
 
 class Util : public Singleton<Util> {
 public:
-	Util() {};
-	~Util() {};
 
 	static constexpr double defaultEpsilon = 0.0001;	
 	bool almostEqual(double a, double b, double epsilon = defaultEpsilon);
