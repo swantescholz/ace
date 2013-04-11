@@ -10,6 +10,7 @@ namespace ace {
 
 Application::Application(std::string aceExecName) {
 	m_rootPath = util::getDirOfPath(aceExecName, true);
+	m_confix["aceExec"] = aceExecName;
 	
 	m_stopFifoThread = false;
 	m_chBufferSize = 50000;
