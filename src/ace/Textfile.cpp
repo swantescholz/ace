@@ -1,7 +1,7 @@
-#include "AceTextfile.h"
-#include "AceException.h"
-#include "AceCommon.h"
-#include "AceUtil.h"
+#include "Textfile.h"
+#include "Exception.h"
+#include "Common.h"
+#include "Util.h"
 #include <fstream>
 #include <stack>
 #include <iostream>
@@ -145,7 +145,7 @@ std::string Textfile::getLine (int index) {
 	static int s_iLine = 0;
 	if (index >= 0) s_iLine = index;
 	if (s_iLine >= m_iNumLines) {
-		ace_except("index (" + util::lex(s_iLine) + ") out of bounds", "getLine");
+		ace_except("index (" + util.lex(s_iLine) + ") out of bounds", "getLine");
 	}
 	std::string sReturnLine;
 	index = 0;
@@ -164,7 +164,7 @@ void Textfile::setLine (const std::string& psNewLine, int index) {
 	static int s_iLine = 0;
 	if (index >= 0) s_iLine = index;
 	if (s_iLine >= m_iNumLines) {
-		ace_except("index (" + util::lex(s_iLine) + ") out of bounds", "setLine");
+		ace_except("index (" + util.lex(s_iLine) + ") out of bounds", "setLine");
 	}
 	index = 0;
 	for (std::list<std::string>::iterator it1 = m_lsLines.begin(); it1 != m_lsLines.end(); it1++) {

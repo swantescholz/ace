@@ -1,8 +1,7 @@
-#ifndef ACESOURCEVIEW_H_
-#define ACESOURCEVIEW_H_
+#ifndef ACE_SOURCEVIEW_H_
+#define ACE_SOURCEVIEW_H_
 
 #include <gtkmm.h>
-//#include <gdk/gdkkeysyms.h> // includes GDK_q
 #include <gtk/gtk.h>
 #include <string>
 #include <gtksourceview/gtksourcebuffer.h>

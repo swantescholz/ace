@@ -1,13 +1,13 @@
-#ifndef APPLICATION_H_
-#define APPLICATION_H_
+#ifndef ACE_APPLICATION_H_
+#define ACE_APPLICATION_H_
 
 #include <gtkmm.h>
 #include <iostream>
 #include <thread>
 #include <memory>
-#include "AceSourceView.h"
-#include "AceTextfile.h"
-#include "AceIpc.h"
+#include "SourceView.h"
+#include "Textfile.h"
+#include "Ipc.h"
 using namespace Gtk;
 using namespace std;
 

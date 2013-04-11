@@ -1,5 +1,5 @@
-#ifndef ACEETEXTFILE_H_
-#define ACETEXTFILE_H_
+#ifndef ACE_ETEXTFILE_H_
+#define ACE_TEXTFILE_H_
 
 #include <vector>
 #include <list>

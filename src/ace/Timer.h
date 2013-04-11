@@ -1,5 +1,5 @@
-#ifndef ACETIMER_H_
-#define ACETIMER_H_
+#ifndef ACE_TIMER_H_
+#define ACE_TIMER_H_
 
 #include <list>
 #include <chrono>

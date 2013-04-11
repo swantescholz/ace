@@ -1,5 +1,15 @@
-#include "AceIpc.h"
-#include "AceUtil.h"
+#include "Ipc.h"
+#include "Util.h"
+#include "Common.h"
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <cstdio>
+#include <errno.h>
+#include <ctype.h>
+
 
 namespace ace {
 
@@ -13,7 +23,7 @@ void selfCall(int num) {
 		}
 		auto line = std::string(ch) + "\n";
 		cout << i << "\t: " << line << endl;
-		FILE* fifo = fopen((ACE_FIFO_NAME + util::lex(num)).c_str(), "w");
+		FILE* fifo = fopen((ACE_FIFO_NAME + util.lex(num)).c_str(), "w");
 		fwrite(line.c_str(), 1, line.length(), fifo);
 		fclose(fifo);
 	}

@@ -1,6 +1,7 @@
-#include "AceSourceView.h"
+#include "SourceView.h"
+#include "Util.h"
+#include "String.h"
 #include <iostream>
-#include "AceUtil.h"
 
 namespace ace {
 
@@ -88,7 +89,7 @@ void SourceView::closeBrace() {
 	GtkTextIter a,b,c;
 	gtk_text_buffer_get_iter_at_mark(tbuf, &b, gtk_text_buffer_get_insert(tbuf));
 	c = a = b;
-	std::string sold, snew;
+	String sold, snew;
 	for(;;) {
 		if(gtk_text_iter_is_start(&a)) {
 			break;
@@ -101,7 +102,7 @@ void SourceView::closeBrace() {
 		}
 		sold += ch;
 	}
-	if(util::isStringWhitespace(sold)) { //delete
+	if(sold.isWhitespace()) { //delete
 		GtkTextMark* mark = gtk_text_buffer_create_mark(tbuf, "mymark", &b, false);
 		gtk_text_buffer_delete(tbuf, &a, &b);
 		int numClosed = 1;
@@ -145,7 +146,7 @@ std::string SourceView::getIndentationOfLine(const GtkTextIter& iter) {
 	for(;;) {
 		gtk_text_iter_forward_char(&it);
 		char ch = gtk_text_iter_get_char(&it);
-		if(!util::isStringWhitespace(std::string("")+ch) ||
+		if(!String(ch).isWhitespace() ||
 			ch == '\n' || gtk_text_iter_is_end(&it) ) {
 			break;
 		}
@@ -165,7 +166,7 @@ char SourceView::getLastNonwhiteCharOfLine(const GtkTextIter& iter) {
 	for(;;) {
 		gtk_text_iter_backward_char(&it);
 		char ch = gtk_text_iter_get_char(&it);
-		if(!util::isStringWhitespace(std::string("")+ch)) {
+		if(!String(ch).isWhitespace()) {
 			return ch;
 		}
 		if(gtk_text_iter_is_start(&it) || ch == '\n') {
@@ -189,7 +190,7 @@ char SourceView::getFirstNonwhiteCharOfLine(const GtkTextIter& iter) {
 		if(ch == '\n') {
 			break;
 		}
-		if(!util::isStringWhitespace(std::string("")+ch)) {
+		if(!String(ch).isWhitespace()) {
 			return ch;
 		}
 		gtk_text_iter_forward_char(&it);
@@ -207,7 +208,7 @@ void SourceView::deleteWhitespaceInFrontOfLine(const GtkTextIter& iter) {
 		if(ch == '\n') {
 			break;
 		}
-		if(!util::isStringWhitespace(std::string("")+ch)) {
+		if(!String(ch).isWhitespace()) {
 			break;
 		}
 		gtk_text_iter_forward_char(&b);
@@ -307,7 +308,7 @@ void SourceView::setIndentOnTab(bool b) {
 	gtk_source_view_set_indent_on_tab(GTK_SOURCE_VIEW(editor), b);
 }
 void SourceView::setIndentString(std::string str) {
-	if(util::isStringWhitespace(str)) {
+	if(String(str).isWhitespace()) {
 		extraIndentation = str;
 	}
 	else {

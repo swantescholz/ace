@@ -1,5 +1,5 @@
-#ifndef ACEEXCEPTION_H_
-#define ACEEXCEPTION_H_
+#ifndef ACE_EXCEPTION_H_
+#define ACE_EXCEPTION_H_
 
 #include <string>
 #include <cstdio>
