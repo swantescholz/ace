@@ -1,2 +1,4 @@
-/ace
+ace
 *.o
+tmp.txt
+config/fifo/
