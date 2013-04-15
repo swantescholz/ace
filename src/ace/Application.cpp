@@ -282,7 +282,6 @@ void Application::updateTabLanguage(std::shared_ptr<Tab>& tab) {
 	}
 }
 void Application::updateLastOpened() {
-	Textfile::saveFile(m_lastAccessedDir, m_config["lastOpenedPathPath"]);
 	std::string stabs;
 	for(auto i : m_tabs) {
 		if(!i->isnew) {
@@ -290,7 +289,13 @@ void Application::updateLastOpened() {
 		}
 	}
 	if(!stabs.empty()) stabs.erase(stabs.length() - 1);
-	Textfile::saveFile(stabs, m_config["lastOpenedTabsPath"]);
+	
+	try {
+		Textfile::saveFile(m_lastAccessedDir, constants.lastOpenedPathPath);
+		Textfile::saveFile(stabs, constants.lastOpenedTabsPath);
+	} catch (shared_ptr<AssertionException> ex) {
+		cout << ex->toString() << endl;
+	}
 }
 //================================================
 void Application::actSwitchPage(Widget* page, guint page_num) {
