@@ -4,6 +4,7 @@
 
 #include "Common.h"
 #include "Util.h"
+#include <execinfo.h>
 
 namespace ace {
 
@@ -127,7 +128,19 @@ private:
 };
 
 
-template<typename T> void __mythrow(const T& v) {throw std::shared_ptr<AssertionException>(new T(v));}
+template<typename T> void __mythrow(const T& v) {
+	auto ex = std::shared_ptr<AssertionException>(new T(v));
+	std::cout << ex->toString() << std::endl;
+	
+	void *array[10];
+	std::size_t size;
+	// get void*'s for all entries on the stack
+	size = backtrace(array, 10);
+	// print out all the frames to stderr
+	backtrace_symbols_fd(array, size, 2);
+	
+	throw ex;
+}
 
 } // namespace ace
 

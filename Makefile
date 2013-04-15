@@ -6,7 +6,7 @@ INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
 LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
 
 CC=g++
-CPPFLAGS=-std=c++11 -Wall -pthread -g
+CPPFLAGS = -std=c++11 -Wall -pthread -g -rdynamic
 
 #%.o: %.cpp
 #	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@

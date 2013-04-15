@@ -17,10 +17,9 @@ using namespace std;
 namespace ace {
 
 void Ipc::runThread(string fifoName) {
-	while (!stopThread) {
-		util.sleep(100_ms);
+	do {
+		util.sleep(10_ms);
 		mtx.lock();
-		cout << "tr: " << fifoName << endl;
 		if (!input.empty()) {
 			FILE* fifo = fopen(fifoName.c_str(), "w");
 			cout << "input: " << input.c_str() << endl;
@@ -29,15 +28,11 @@ void Ipc::runThread(string fifoName) {
 			fclose(fifo);
 		}
 		mtx.unlock();
-	}
+	} while (!stopThread);
 }
 
 void Ipc::selfCall(int num) {
-	for (int i = 0; i < 11; i++) {
-		util.sleep(500_ms);
-		cout << "hello call" << endl;
-	}
-	auto fifoName = (ACE_FIFO_NAME + util.lex(num)).c_str();
+	string fifoName = ACE_FIFO_NAME + util.lex(num);
 	thread t([&]{runThread(fifoName);});
 	for(int i = 0;; ++i) {
 		char c;
@@ -45,9 +40,10 @@ void Ipc::selfCall(int num) {
 		if(cin.eof()) {
 			break;
 		}
-		mtx.lock();
-		input += c;
-		mtx.unlock();		
+		if (mtx.try_lock()) {
+			input += c;
+			mtx.unlock();
+		}
 	}
 	stopThread = true;
 	t.join();

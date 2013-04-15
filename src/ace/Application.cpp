@@ -402,8 +402,10 @@ void Application::buildProject() {
 	while(true) {
 		auto makefilePath = path+"/"+makefileName;
 		if(util.fileExists(makefilePath)) {
-			util.system("make -C " + path + " -f " + makefileName + " 2>&1 | " + m_config["aceExec"] +
-				" --self" + util.lex(m_fifoNum) + " &");
+			string cmd = "make -C " + path + " -f " + makefileName + " 2>&1 | " + m_config["aceExec"] +
+				" --self" + util.lex(m_fifoNum) + " &";
+			cout << "cmd: " << cmd << endl;
+			util.system(cmd);
 			break;
 		}
 		if(path.length() <= 0) {

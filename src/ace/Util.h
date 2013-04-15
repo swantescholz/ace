@@ -8,7 +8,7 @@
 
 #define util (Util::getInstance())
 
-namespace ace {
+namespace ace { 
 
 double operator"" _ms(unsigned long long int v);
 
