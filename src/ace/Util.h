@@ -8,9 +8,9 @@
 
 #define util (Util::getInstance())
 
-double operator"" ms(unsigned long long int v) {return double(v) / 1000.0;}
-
 namespace ace {
+
+double operator"" _ms(unsigned long long int v);
 
 class Util : public Singleton<Util> {
 public:

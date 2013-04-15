@@ -2,3 +2,5 @@ ace
 *.o
 tmp.txt
 config/fifo/
+build/
+*.d

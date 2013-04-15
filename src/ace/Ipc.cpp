@@ -18,9 +18,9 @@ namespace ace {
 
 void Ipc::runThread(string fifoName) {
 	while (!stopThread) {
-		util.sleep(100ms);
+		util.sleep(100_ms);
 		mtx.lock();
-		cout << "tr: " << input << endl;
+		cout << "tr: " << fifoName << endl;
 		if (!input.empty()) {
 			FILE* fifo = fopen(fifoName.c_str(), "w");
 			cout << "input: " << input.c_str() << endl;
@@ -34,7 +34,7 @@ void Ipc::runThread(string fifoName) {
 
 void Ipc::selfCall(int num) {
 	for (int i = 0; i < 11; i++) {
-		util.sleep(500ms);
+		util.sleep(500_ms);
 		cout << "hello call" << endl;
 	}
 	auto fifoName = (ACE_FIFO_NAME + util.lex(num)).c_str();

@@ -17,6 +17,8 @@ using namespace std;
 
 namespace ace {
 
+double operator"" _ms(unsigned long long int v) {return double(v) / 1000.0;}
+
 void Util::sleep(double sec) {
 	this_thread::sleep_for(chrono::microseconds((long long int)(sec * 1000000.0)));
 }
