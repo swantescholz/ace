@@ -1,37 +1,32 @@
 EXEC=ace
-SRC=$(wildcard src/*.cpp src/*/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
-OBJ=$(SRC:.cpp=.o)
-INC=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
+SRCS=$(wildcard src/*.cpp src/*/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
+OBJS=$(SRCS:.cpp=.o)
+DEPS=$(OBJS:.o=.d)
+INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
 LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
 
 CC=g++
-CCOPTS=-std=c++11 -Wall -pthread -g
+CPPFLAGS=-std=c++11 -Wall -pthread -g
 
-#DEPDIR=build
-#df = $(DEPDIR)/$(*F)
-#MAKEDEPEND = g++ -M $(CCOPTS) $(INC) $(CPPFLAGS) -o $*.d $<
-#.cpp.o :
-#	$(CC) $(CCOPTS) $(INC) -c $< -o $@
-# $(COMPILE.c) -MD $(CCOPTS) $(INC) -o $@ $<
-
-%.d: %.c
-	$(SHELL) -ec '$(CC) -M $(CPPFLAGS) $< | sed '\"s/$*.o/& $@/g'\" > $@'
--include $(SRC:.cpp=.d)
-
-.cpp.o :
-	$(CC) $(CCOPTS) $(INC) -c $< -o $@
-
+#%.o: %.cpp
+#	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@
 
 all: $(EXEC)
 
-$(EXEC): $(OBJ)
+-include $(DEPS)
+
+%.o: %.cpp
+	$(CC) $(CPPFLAGS) $(INCS) -MMD -c $< -o $@
+ 
+
+
+# ================================
+$(EXEC): $(OBJS)
 	$(LINK.o) $^ -o $@ $(LIBS)
-	
 clean:
-	rm $(EXEC) $(OBJ)
+	rm -f $(OBJS) ./.depend $(DEPS)
 run:
 	./$(EXEC)
-
 
 
 #Special symbols used:
