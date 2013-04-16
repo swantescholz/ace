@@ -5,6 +5,7 @@
 //*
 #include "ace/ace.h"
 #include "ace/Ipc.h"
+#include "ace/StackTrace.h"
 using namespace ace;
 
 void init(int argc, char **argv);
@@ -16,6 +17,8 @@ int main( int argc, char **argv) {
 }
 
 void init(int argc, char **argv) {
+	
+	stacktrace.init();
 	
 	if(argc > 1) {
 		String arg1 = std::string(argv[1]);

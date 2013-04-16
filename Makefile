@@ -1,4 +1,5 @@
 EXEC=ace
+BUILDDIR=build
 SRCS=$(wildcard src/*.cpp src/*/*.cpp src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
 OBJS=$(SRCS:.cpp=.o)
 DEPS=$(OBJS:.o=.d)
@@ -16,7 +17,10 @@ all: $(EXEC)
 -include $(DEPS)
 
 %.o: %.cpp
-	$(CC) $(CPPFLAGS) $(INCS) -MMD -c $< -o $@
+	@echo $<
+	@echo $@
+	@echo $BUILDDIR/$($@:.o=.d)
+	$(CC) $(CPPFLAGS) $(INCS) -MMD -c $< -o $BUILDDIR/$@
  
 
 
