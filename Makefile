@@ -4,7 +4,7 @@
 EXEC=ace
 INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
 LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
-FLAGS=-std=c++11 -Wall -pthread
+FLAGS=-std=c++11 -Wall -pthread -g -rdynamic
 CC=g++
 CPPFLAGS=$(FLAGS) $(INCS)
 
@@ -22,8 +22,8 @@ OBJS=$(SRCS:.cpp=.o)
 all: $(EXEC)
 
 #mkdir -p dirname tmp
-#%.o: %.cpp
-#	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@
+%.o: %.cpp
+	$(CC) $(FLAGS) $(INCS) -c $< -o $@
 
 # ================================
 

@@ -18,7 +18,7 @@ int main( int argc, char **argv) {
 
 void init(int argc, char **argv) {
 	
-	stacktrace.init();
+	//stacktrace.init();
 	
 	if(argc > 1) {
 		String arg1 = std::string(argv[1]);

@@ -219,13 +219,13 @@ void Application::addTab(const std::string& tabname, const std::string& text, bo
 	m_notebook.append_page(tab->window, tab->name + ((isnew)?"*":""));
 	m_notebook.set_tab_reorderable(tab->window, true);
 	m_notebook.show_all();
-	m_notebook.set_current_page(m_notebook.get_n_pages()-1);
 	m_tabs.push_back(tab);
+	m_notebook.set_current_page(m_notebook.get_n_pages()-1);
 }
 std::shared_ptr<Tab> Application::getCurrentTab() {
 	int n = m_notebook.get_current_page();
 	auto it = m_tabs.begin();
-	for(int i = 0; i < n; ++i) {++it;}
+	for(int i = 0; i < n && it != m_tabs.end(); ++i) {++it;}
 	return *it;
 }
 void Application::openFifo() {
@@ -299,9 +299,10 @@ void Application::updateLastOpened() {
 }
 //================================================
 void Application::actSwitchPage(Widget* page, guint page_num) {
-	auto tab = getCurrentTab();
-	auto title = m_notebook.get_tab_label_text(tab->window);
-	title += " (" + tab->path + ") - Ace";
+	auto tab = m_notebook.get_nth_page(page_num);
+	string title = m_notebook.get_tab_label_text(*tab);
+	auto curTab = getCurrentTab();
+	title += " (" + curTab->path + ") - Ace";
 	set_title(title);
 }
 void Application::newFile() {
