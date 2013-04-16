@@ -10,7 +10,7 @@
 
 namespace ace { 
 
-double operator"" _m(unsigned long long int v);
+double operator"" _(unsigned long long int v);
 
 class Util : public Singleton<Util> {
 public:

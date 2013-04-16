@@ -4,8 +4,9 @@
 EXEC=ace
 INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
 LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
+FLAGS=-std=c++11 -Wall -pthread
 CC=g++
-CPPFLAGS=-std=c++11 -Wall -pthread $(INCS)
+CPPFLAGS=$(FLAGS) $(INCS)
 
 
 BUILDDIR=build
@@ -15,29 +16,28 @@ OBJS=$(SRCS:.cpp=.o)
 
 # ================================
 
-
-
-
 all: $(EXEC)
-
-#.o:
-#	@echo mymdd
-#	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@
 
 # ================================
 
-#depend: .depend
+depend: .depend
 
-#.depend: $(SRCS)
-#	rm -f ./.depend
-#	$(CC) $(CPPFLAGS) $(INCS) -MM $^ > ./.depend;
+.depend:
+	rm -f ./.depend
+	for src in $(SRCS) ; do \
+		echo $$src; \
+		thename=$$src | sed "s/\([[:print:]]*\).cpp/\1/"
+		$(CC) $(FLAGS) -MM -MT $(thename).o $(thename).cpp \
+			| sed "s/\([[:print:]]*\).cpp: \([[:print:]]*\)/\1.o: \1.cpp \2/" \
+			>> ./.depend; \
+	done
 
-
+-include .depend
 
 # ================================
 clean:
 	@echo helllo
-	rm -f -R $(BUILDDIR)/* $(OBJS)
+	rm -f -R $(BUILDDIR)/* $(OBJS) .depend
 run:
 	./$(EXEC)
 $(EXEC): $(OBJS)
