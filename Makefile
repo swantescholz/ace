@@ -1,41 +1,47 @@
-EXEC=ace
-INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
-LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
-BUILDDIR=build
-SUBDIRS=$(wildcard src/* src/*/* src/*/*/*/* src/*/*/*/*/* src/*/*/*/*/*/*)
-SRCS=$(wildcard $(addsuffix /*.cpp,$(SUBDIRS)))
-#OBJS=$(addprefix $(BUILDDIR)/,$(SRCS:.cpp=.o))
-OBJS=$(SRCS:.cpp=.o)
-DEPS=$(BUILDDIR)/`echo $(OBJS) | sed "s/\.o/\.d/"`
-#DEPS=`echo $(OBJS) | sed "s/\.o/\.d/"`
-
-CC=g++
-CPPFLAGS = -std=c++11 -Wall -pthread -g
-
 #%.o: %.cpp
 #	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@
 #
+EXEC=ace
+INCS=`pkg-config --cflags gtkmm-3.0` -I/usr/include/gtksourceview-3.0
+LIBS=-L/usr/lib -L/usr/local/lib `pkg-config --libs gtkmm-3.0` `pkg-config --libs gtksourceview-3.0`
+CC=g++
+CPPFLAGS=-std=c++11 -Wall -pthread $(INCS)
+
+
+BUILDDIR=build
+SUBDIRS=$(wildcard src src/* src/*/* src/*/*/*/* src/*/*/*/*/* src/*/*/*/*/*/*)
+SRCS=$(wildcard $(addsuffix /*.cpp,$(SUBDIRS)))
+OBJS=$(SRCS:.cpp=.o)
+
+# ================================
+
+
+
+
 all: $(EXEC)
 
--include $(DEPS)
+#.o:
+#	@echo mymdd
+#	$(CC) $(CPPFLAGS) $(INCS) -c $< -o $@
 
-%.o: %.cpp
-	@echo $<
-	@echo $@
-	@mkdir -p `dirname $(BUILDDIR)/$@`
-	$(CC) $(CPPFLAGS) $(INCS) -MMD \
-		-MF $(BUILDDIR)/`echo $@ | sed "s/\.o/\.d/"` \
-		-c $< -o $(BUILDDIR)/$@
- 
+# ================================
+
+#depend: .depend
+
+#.depend: $(SRCS)
+#	rm -f ./.depend
+#	$(CC) $(CPPFLAGS) $(INCS) -MM $^ > ./.depend;
+
 
 
 # ================================
 clean:
 	@echo helllo
-	rm -f -R $(BUILDDIR)/*
+	rm -f -R $(BUILDDIR)/* $(OBJS)
 run:
 	./$(EXEC)
 $(EXEC): $(OBJS)
+	@echo exec done!
 	$(LINK.o) $^ -o $@ $(LIBS)
 
 
