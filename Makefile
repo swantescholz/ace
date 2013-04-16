@@ -16,18 +16,27 @@ OBJS=$(SRCS:.cpp=.o)
 
 # ================================
 
+#tmp:
+#	echo $(basename hh/aa.txt .txt)
+
 all: $(EXEC)
 
 # ================================
+#$(printf "%s/%s.o\n" `dirname $$src` `basename $$src .cpp`); \
+#thename=hhheello; \  
+#		echo $(thename); \
+#printf "%s/%s.o\n" `dirname $$src` `basename $$src .cpp`; \		
 
 depend: .depend
 
 .depend:
 	rm -f ./.depend
-	for src in $(SRCS) ; do \
-		echo $$src; \
-		thename=$$src | sed "s/\([[:print:]]*\).cpp/\1/"
-		$(CC) $(FLAGS) -MM -MT $(thename).o $(thename).cpp \
+	@for src in $(SRCS) ; do \
+		$(eval tmpa := `dirname $$src`) \
+		echo $(tmpa); \
+		$(eval thename := `printf "%s/%s.o\n" aa ss`) \
+		echo $(thename); \
+		$(CC) $(FLAGS) -MM -MT $$src \
 			| sed "s/\([[:print:]]*\).cpp: \([[:print:]]*\)/\1.o: \1.cpp \2/" \
 			>> ./.depend; \
 	done
